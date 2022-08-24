@@ -1,0 +1,3 @@
+# Interraction tree:
+
+MAIN_TREE, HOURS_CONV, MODEL_CONV, SEATS_CONV, COLOR_CONV, NUMBER_CONV = range(6)

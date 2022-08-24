@@ -1,0 +1,57 @@
+from pilotCore import conversation
+from pilotCore.handlers.driver import static_text
+# CallbackQueryHandler data:
+
+# driver_main:
+PENDING_ORDERS_BUTTON = 'PNDNG_ORD_BTTN'
+CAR_SETTINGS_BUTTON = 'CR_STTNGS_BTTN'
+WORK_HOURS_BUTTON = 'WORK_HOURS_BTTN'
+DIRECTION_BUTTON = 'DIRECTION_BTTN'
+
+# car_settings:
+CAR_MODEL_BUTTON = 'CAR_MODEL_BTTN'
+CAR_SEATS_BUTTON = 'CAR_SEATS_BTTN'
+CAR_COLOR_BUTTON = 'CAR_COLOR_BTTN'
+CAR_NUMBER_BUTTON = 'CAR_NUMBER_BTTN'
+
+# Driver preference redirection patterns:
+REPLY_HANDLESR = [
+    WORK_HOURS_BUTTON,
+    CAR_MODEL_BUTTON,
+    CAR_SEATS_BUTTON,
+    CAR_COLOR_BUTTON,
+    CAR_NUMBER_BUTTON
+]
+
+CONVERSATION_REDIRECT = {
+    WORK_HOURS_BUTTON: conversation.HOURS_CONV,
+    CAR_MODEL_BUTTON: conversation.MODEL_CONV,
+    CAR_SEATS_BUTTON: conversation.SEATS_CONV,
+    CAR_COLOR_BUTTON: conversation.COLOR_CONV,
+    CAR_NUMBER_BUTTON: conversation.NUMBER_CONV
+}
+
+# back buttons:
+BACK_MAIN_BUTTON = 'BCK_MN_BTTN'
+BACK_DRIVER_MAIN_BUTTON = 'BCK_DRVR_MN_BTTN'
+BACK_CAR_SETTING_BUTTON = 'BCK_CR_STTNG_BTTN'
+
+
+#######
+DELETE_CITY_BUTTON = 'DLT_CT_BTTN'
+
+CITY_YEREVAN_BUTTON = 'CT_RVN_BTTN'
+CITY_ARARAT_BUTTON = 'CT_RRT_BTTN'
+CITY_EHEGNADZOR_BUTTON = 'CT_HGNDZR_BTTN'
+CITY_JERMUK_BUTTON = 'CT_JRMK_BTTN'
+
+CITIES_CALLBACK = {
+    CITY_YEREVAN_BUTTON: static_text.city_Yerevan,
+    CITY_ARARAT_BUTTON: static_text.city_Ararat,
+    CITY_EHEGNADZOR_BUTTON: static_text.city_Ehegnadzor,
+    CITY_JERMUK_BUTTON: static_text.city_Jermuk
+}
+CITIES_PATTERN = f'^{CITY_YEREVAN_BUTTON}$|' \
+                    f'^{CITY_ARARAT_BUTTON}$|' \
+                    f'^{CITY_EHEGNADZOR_BUTTON}$|' \
+                    f'^{CITY_JERMUK_BUTTON}$'

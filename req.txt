@@ -1,0 +1,42 @@
+#asgiref==3.4.1
+#Django==3.2.15
+#gunicorn==20.1.0
+#pkg-resources==0.0.0
+#psycopg2-binary==2.9.3
+#pytz==2022.2
+#sqlparse==0.4.2
+#typing-extensions==4.1.1
+#python-telegram-bot==13.13
+
+pytz
+requests
+python-dotenv
+ipython
+
+# Django
+django
+django-timezone-field
+django-cors-headers
+django-debug-toolbar
+whitenoise
+
+# Django 3.0 async requirements
+gunicorn
+uvicorn
+uvloop
+httptools
+
+# Databases
+psycopg2-binary
+dj-database-url
+
+# Distributed tasks
+celery
+redis
+django-celery-beat
+
+# Telegram
+python-telegram-bot
+
+# monitoring
+# sentry-sdk
