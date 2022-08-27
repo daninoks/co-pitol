@@ -8,3 +8,7 @@ support_button = u'\U0001F5FF' + ' need support'
 
 ### MESSAGE TEXT ###
 command_start_text = 'Choose who you are:'
+
+
+### TEST ###
+test_button = 'test noti'

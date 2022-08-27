@@ -11,7 +11,7 @@ from django.shortcuts import render
 
 from django_project.settings import DEBUG
 
-from pilotCore.models import User, Driver, PrevMess
+from pilotCore.models import User, Driver, PrevMess, Order
 
 
 # Register your models here.
@@ -20,7 +20,7 @@ class UserAdmin(admin.ModelAdmin):
     list_display = [
         'user_id', 'username', 'first_name', 'last_name',
         'language_code', 'deep_link',
-        'created_at', 'updated_at', "is_blocked_bot",
+        'created_at', 'updated_at', "is_blocked_bot"
     ]
     list_filter = ["is_blocked_bot", ]
     search_fields = ('username', 'user_id')
@@ -31,7 +31,7 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(Driver)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'user_id', 'work_hours', 'direction',
+        'user_id', 'username', 'work_hours', 'direction',
         'car_model', 'car_seats', 'car_color', 'car_number'
     ]
 
@@ -39,10 +39,18 @@ class DriverAdmin(admin.ModelAdmin):
 @admin.register(PrevMess)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'user_id', 'mess_deleted',
+        'user_id', 'mess_deleted'
     ]
 
-
+@admin.register(Order)
+class DriverAdmin(admin.ModelAdmin):
+    list_display = [
+        'order_id', 'real_name', 'username', 'phone_number',
+        'departure_time', 'travel_direction', 'seats',
+        'comment', 'status'
+    ]
+    list_filter = ['status', 'departure_time']
+    search_fields = ('order_id', 'departure_time', 'travel_direction')
 
 
     # def broadcast(self, request, queryset):

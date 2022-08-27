@@ -30,7 +30,6 @@ from pilotCore.handlers.driver import handlers as driver_handlers
 from pilotCore.handlers.driver import manage_data as driver_data
 
 
-
 TELEGRAM_TOKEN = TELEGRAM_TOKEN
 
 
@@ -42,6 +41,12 @@ def make_conversation_handler():
         ],
         states={
             conversation.MAIN_TREE: [
+                CallbackQueryHandler(
+                    welcome_handlers.test,
+                    pattern=format(
+                        f'^{welcome_data.TEST_BUTTON}$|'
+                    )
+                ),
                 CallbackQueryHandler(
                     welcome_handlers.start_over,
                     pattern=format(

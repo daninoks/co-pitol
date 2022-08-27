@@ -9,9 +9,10 @@ from telegram.ext import CallbackContext
 
 from django_project.settings import DEBUG
 from django.db import models
-from django.db.models import QuerySet, Manager
+from django.db.models import QuerySet, Manager, Max
 
 from pilotCore.handlers.utils.info import extract_user_data_from_update
+from pilotCore.utils import broadcast
 from utils.models import CreateUpdateTracker, nb, CreateTracker, GetOrNoneManager
 
 
@@ -20,9 +21,10 @@ class AdminUserManager(Manager):
         return super().get_queryset().filter(is_admin=True)
 
 
+
 class User(CreateUpdateTracker):
-    user_id = models.PositiveBigIntegerField(primary_key=True)  # telegram_id
-    username = models.CharField(max_length=32, **nb)
+    user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
+    username = models.CharField(max_length=32, editable=False, **nb)
     first_name = models.CharField(max_length=256)
     last_name = models.CharField(max_length=256, **nb)
     language_code = models.CharField(max_length=8, help_text="Telegram client's lang", **nb)
@@ -96,9 +98,10 @@ class User(CreateUpdateTracker):
         return f"{self.first_name} {self.last_name}" if self.last_name else f"{self.first_name}"
 
 
+
 class Driver(CreateUpdateTracker):
-    user_id = models.PositiveBigIntegerField(primary_key=True)  # telegram_id
-    # username = models.CharField(max_length=32, **nb)
+    user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
+    username = models.CharField(max_length=32, editable=False, **nb)
     work_hours = models.CharField(max_length=32, default=None, **nb)
     car_model = models.CharField(max_length=32, default=None, **nb)
     car_seats = models.PositiveSmallIntegerField(default=0)
@@ -182,9 +185,11 @@ class Driver(CreateUpdateTracker):
         u.save()
         return u
 
+
+
 class PrevMess(CreateUpdateTracker):
-    user_id = models.PositiveBigIntegerField(primary_key=True)      # telegram_id
-    mess_deleted = models.PositiveSmallIntegerField(default=0)      # number deleted Messages after entry_points to conversation
+    user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)      # telegram_id
+    mess_deleted = models.PositiveSmallIntegerField(default=0, editable=False)      # number deleted Messages after entry_points to conversation
 
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
@@ -205,4 +210,42 @@ class PrevMess(CreateUpdateTracker):
         cu.save()
         return cu
 
-# class Order(CreateUpdateTracker):
+
+class Order(CreateUpdateTracker):
+    order_id = models.PositiveIntegerField(default=0, editable=False)
+    real_name = models.CharField(max_length=32, default=None, **nb)
+    username = models.CharField(max_length=32, default=None, **nb)
+    phone_number = models.PositiveIntegerField(default=None)
+    departure_time = models.CharField(max_length=32, default=None, **nb)
+    travel_direction = models.TextField(default=None, **nb)
+    seats = models.PositiveSmallIntegerField(default=None)
+    comment = models.TextField(default=None, **nb)
+
+    ORD_OPEN = 'OPEN'
+    ORD_PENDING = 'PENDING'
+    ORD_CLOSED = 'CLOSED'
+    ORDER_STATE = [
+        (ORD_OPEN, 'Open'),
+        (ORD_PENDING, 'Pending'),
+        (ORD_CLOSED, 'Closed')
+    ]
+    status = models.CharField(
+        max_length=7,
+        choices=ORDER_STATE,
+        default=ORD_OPEN
+    )
+
+    def save(cls, *args, **kw):
+        if cls.order_id == 0:
+            cls.order_id = Order.objects.count()
+            cathcer = broadcast.broadcast_new_order(cls, Driver)
+        return super(Order, cls).save(*args, **kw)
+
+    @classmethod
+    def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
+        data = extract_user_data_from_update(update)
+        o, exists = cls.objects.get_or_create(user_id=data["user_id"])
+        return o, exists
+
+    # @classmethod
+    # def
