@@ -10,10 +10,9 @@ from telegram.ext import CallbackContext
 from pilotCore import conversation
 
 from pilotCore.handlers.driver import keyboards, manage_data, static_text
-from pilotCore.models import User, Driver, PrevMess
+from pilotCore.models import User, Driver, DriverUtils
 
 from django_project.settings import TELEGRAM_TOKEN
-
 
 
 # wrong field allert
@@ -26,7 +25,7 @@ from django_project.settings import TELEGRAM_TOKEN
 
 def delete_missclicked_messages(update: Update, context: CallbackContext) -> None:
     """Deleting messages from User outside the input conversation"""
-    cu =  PrevMess.inc_counter(update, context)
+    cu =  DriverUtils.inc_counter(update, context)
     Bot(TELEGRAM_TOKEN).deleteMessage(
         chat_id=update.message.chat.id,
         message_id=update.message.message_id,
@@ -44,7 +43,7 @@ def driver_main(update: Update, context: CallbackContext) -> int:
         color = '-' if d.car_color is None else d.car_color,
         number = '-' if d.car_number is None else d.car_number,
         seats = '-' if d.car_seats is None else d.car_seats,
-        direction = 'Plese set your todays path in DIRECTION' if d.direction is None else d.direction
+        direction = 'Set in DIRECTION' if d.direction is None or d.direction == '' else d.direction
     )
 
     context.bot.edit_message_text(
@@ -157,7 +156,7 @@ def set_hours(update: Update, context: CallbackContext) -> int:
         timeout=None
     )
 
-    cu =  PrevMess.inc_counter(update, context)
+    cu =  DriverUtils.inc_counter(update, context)
     prev_mess_id = update.message.message_id - cu.mess_deleted
 
     context.bot.edit_message_text(
@@ -213,7 +212,7 @@ def bot_actions_set(update, context, text) -> None:
         timeout=None
     )
 
-    cu =  PrevMess.inc_counter(update, context)
+    cu =  DriverUtils.inc_counter(update, context)
     prev_mess_id = update.message.message_id - cu.mess_deleted
 
     context.bot.edit_message_text(

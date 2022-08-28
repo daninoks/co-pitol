@@ -10,17 +10,21 @@ def make_keyboard_driver_main() -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
-                static_text.pending_orders,
-                callback_data=manage_data.PENDING_ORDERS_BUTTON
+                static_text.new_orders,
+                callback_data=manage_data.NEW_ORDERS_BUTTON
+            ),
+            InlineKeyboardButton(
+                static_text.my_orders,
+                callback_data=manage_data.MY_ORDERS_BUTTON
             )
         ],
         [
             InlineKeyboardButton(
-                static_text.work_time,      # UPDATES EVERY DAY
+                static_text.work_time,          # UPDATES EVERY DAY
                 callback_data=manage_data.WORK_HOURS_BUTTON
             ),
             InlineKeyboardButton(
-                static_text.direction,           # UPDATES EVERY DAY
+                static_text.direction,          # UPDATES EVERY DAY
                 callback_data=manage_data.DIRECTION_BUTTON
             )
         ],

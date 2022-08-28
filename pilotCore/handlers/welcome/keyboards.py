@@ -23,11 +23,11 @@ def make_keyboard_start_command() -> InlineKeyboardMarkup:
                 callback_data=manage_data.SUPPORT_BUTTON
             )
         ],
-        [
-            InlineKeyboardButton(
-                static_text.test_button,
-                callback_data=manage_data.TEST_BUTTON
-            )
-        ],
+        # [
+        #     InlineKeyboardButton(
+        #         static_text.test_button,
+        #         callback_data=manage_data.TEST_BUTTON
+        #     )
+        # ],
     ]
     return InlineKeyboardMarkup(buttons)

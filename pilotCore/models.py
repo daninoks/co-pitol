@@ -12,7 +12,7 @@ from django.db import models
 from django.db.models import QuerySet, Manager, Max
 
 from pilotCore.handlers.utils.info import extract_user_data_from_update
-from pilotCore.utils import broadcast
+from pilotCore.handlers.order import broadcast
 from utils.models import CreateUpdateTracker, nb, CreateTracker, GetOrNoneManager
 
 
@@ -109,6 +109,7 @@ class Driver(CreateUpdateTracker):
     car_number = models.CharField(max_length=32,default=None, **nb)
     direction = models.TextField(default=None, **nb)
 
+
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         """ python-telegram-bot's Update, Context --> User instance """
@@ -187,28 +188,59 @@ class Driver(CreateUpdateTracker):
 
 
 
-class PrevMess(CreateUpdateTracker):
+class DriverUtils(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)      # telegram_id
     mess_deleted = models.PositiveSmallIntegerField(default=0, editable=False)      # number deleted Messages after entry_points to conversation
+    new_orders_num = models.PositiveSmallIntegerField(default=0, editable=False)
+    new_orders_page = models.PositiveSmallIntegerField(default=0, editable=False)
+
 
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         data = extract_user_data_from_update(update)
-        cu, exists = cls.objects.get_or_create(user_id=data["user_id"])
-        return cu, exists
+        du, exists = cls.objects.get_or_create(user_id=data["user_id"])
+        return du, exists
 
     @classmethod
     def reset_counter(cls, update: Update, context: CallbackContext) -> None:
-        cu, _ = cls.get_or_create_user(update, context)
-        cu.mess_deleted = 0
-        cu.save()
+        du, _ = cls.get_or_create_user(update, context)
+        du.mess_deleted = 0
+        du.save()
 
     @classmethod
-    def inc_counter(cls, update: Update, context: CallbackContext) -> User:
-        cu, _  = cls.get_or_create_user(update, context)
-        cu.mess_deleted += 1
-        cu.save()
-        return cu
+    def inc_counter(cls, update: Update, context: CallbackContext) -> DriverUtils:
+        du, _  = cls.get_or_create_user(update, context)
+        du.mess_deleted += 1
+        du.save()
+        return du
+
+    @classmethod
+    def set_new_orders_page(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
+        du, _ = cls.get_or_create_user(update, context)
+        if value == 0:
+            du.new_orders_page = 0
+        if value == -1:
+            du.new_orders_page = (
+                du.new_orders_num if du.new_orders_page == 0
+                else du.new_orders_page - 1
+            )
+        if value == 1:
+            du.new_orders_page = (
+                0 if du.new_orders_page == du.new_orders_num
+                else du.new_orders_page + 1
+            )
+        du.save()
+        return du.new_orders_page
+
+    @classmethod
+    def set_new_orders_num(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
+        du, _ = cls.get_or_create_user(update, context)
+        if du.new_orders_num != value:
+            cls.set_new_orders_page(update, context, 0)
+            du.new_orders_num = value
+        du.save()
+        return du.new_orders_num
+
 
 
 class Order(CreateUpdateTracker):
@@ -237,8 +269,11 @@ class Order(CreateUpdateTracker):
 
     def save(cls, *args, **kw):
         if cls.order_id == 0:
-            cls.order_id = Order.objects.count()
-            cathcer = broadcast.broadcast_new_order(cls, Driver)
+            # oders_count = Order.objects.count()
+            # double check(issues in upper case):
+            orders_len = len(list(Order.objects.values('order_id')))
+            cls.order_id = orders_len + 1
+            # cathcer = broadcast.broadcast_new_order(cls, Driver)
         return super(Order, cls).save(*args, **kw)
 
     @classmethod

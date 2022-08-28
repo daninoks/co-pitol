@@ -5,4 +5,4 @@ from telegram.ext import CallbackContext
 from pilotCore import conversation
 
 from pilotCore.handlers.welcome import keyboards, manage_data, static_text
-from pilotCore.models import User, PrevMess
+from pilotCore.models import User, DriverUtils

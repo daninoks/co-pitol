@@ -11,7 +11,7 @@ from django.shortcuts import render
 
 from django_project.settings import DEBUG
 
-from pilotCore.models import User, Driver, PrevMess, Order
+from pilotCore.models import User, Driver, DriverUtils, Order
 
 
 # Register your models here.
@@ -36,10 +36,10 @@ class DriverAdmin(admin.ModelAdmin):
     ]
 
 
-@admin.register(PrevMess)
+@admin.register(DriverUtils)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'user_id', 'mess_deleted'
+        'user_id', 'mess_deleted', 'new_orders_num', 'new_orders_page'
     ]
 
 @admin.register(Order)

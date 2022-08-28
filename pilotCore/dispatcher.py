@@ -28,6 +28,8 @@ from pilotCore.handlers.welcome import handlers as welcome_handlers
 from pilotCore.handlers.welcome import manage_data as welcome_data
 from pilotCore.handlers.driver import handlers as driver_handlers
 from pilotCore.handlers.driver import manage_data as driver_data
+from pilotCore.handlers.order import handlers as order_handlers
+from pilotCore.handlers.order import manage_data as order_data
 
 
 TELEGRAM_TOKEN = TELEGRAM_TOKEN
@@ -41,12 +43,12 @@ def make_conversation_handler():
         ],
         states={
             conversation.MAIN_TREE: [
-                CallbackQueryHandler(
-                    welcome_handlers.test,
-                    pattern=format(
-                        f'^{welcome_data.TEST_BUTTON}$|'
-                    )
-                ),
+                # CallbackQueryHandler(
+                #     welcome_handlers.test,
+                #     pattern=format(
+                #         f'^{welcome_data.TEST_BUTTON}$|'
+                #     )
+                # ),
                 CallbackQueryHandler(
                     welcome_handlers.start_over,
                     pattern=format(
@@ -58,6 +60,14 @@ def make_conversation_handler():
                     pattern=format(
                         f'^{welcome_data.DRIVER_BUTTON}$|'
                         f'^{driver_data.BACK_DRIVER_MAIN_BUTTON}$'
+                    )
+                ),
+                CallbackQueryHandler(
+                    order_handlers.new_orders_menu,
+                    pattern=format(
+                        f'^{driver_data.NEW_ORDERS_BUTTON}$|'
+                        f'^{order_data.PREV_ORDER}$|'
+                        f'^{order_data.NEXT_ORDER}$'
                     )
                 ),
                 CallbackQueryHandler(
@@ -125,9 +135,9 @@ def make_conversation_handler():
             ],
             conversation.NUMBER_CONV: [
                 CallbackQueryHandler(
-                    driver_handlers.driver_main,
+                    driver_handlers.car_settings,
                     pattern=format(
-                        f'^{driver_data.BACK_DRIVER_MAIN_BUTTON}$'
+                        f'^{driver_data.BACK_CAR_SETTING_BUTTON}$'
                     )
                 ),
                 MessageHandler(

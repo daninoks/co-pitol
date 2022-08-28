@@ -3,7 +3,8 @@ from pilotCore.handlers.driver import static_text
 # CallbackQueryHandler data:
 
 # driver_main:
-PENDING_ORDERS_BUTTON = 'PNDNG_ORD_BTTN'
+NEW_ORDERS_BUTTON = 'NW_ORD_BTTN'
+MY_ORDERS_BUTTON = 'M_ORD_BTTN'
 CAR_SETTINGS_BUTTON = 'CR_STTNGS_BTTN'
 WORK_HOURS_BUTTON = 'WORK_HOURS_BTTN'
 DIRECTION_BUTTON = 'DIRECTION_BTTN'

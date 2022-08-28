@@ -2,7 +2,8 @@ from typing import Dict
 
 ##### BUTTONS TEXT #####
 # driver_main
-pending_orders = u'\U0001F4B0' + ' ORDERS'
+new_orders = u'\U0001F4B0' + ' NEW ORDERS'
+my_orders = u'\U0001F5D2' + ' MY ORDERS'
 work_time = u'\U000023F3' + ' WORK TIME'
 car_settings = u'\U0001F698' + ' CAR SETTINGS'
 direction = u'\U0001F5FA' + ' DIRECTION'
@@ -20,21 +21,22 @@ back_car_settings = u'\U00002B05' + ' Back car setting'
 
 
 ### MESSAGE TEXT ###
-driver_main_text = 'WELCOME DEAR DRIVER\n\n' \
-        u'\U0001F4B0 <i>Pending orders</i>...X \n' \
-        u'\U000023F3 <i>Work time</i>...........{hours} \n' \
-        u'\U0001F5FA <i>Direction</i>.............{direction} \n\n' \
-        u'\U0001F698 <i>Car:</i> <b>{seats} seats</b> {color} <b>{model}</b> {number}.'
+driver_main_text = '<code>      WELCOME DEAR DRIVER</code> \n\n' \
+        u'\U0001F4B0 <code>Orders......X</code> \n' \
+        u'\U000023F3 <code>Work time...{hours}</code>\n' \
+        u'\U0001F5FA <code>Direction...{direction}</code> \n' \
+        u'\U0001F6CB <code>Seats.......{seats}</code> \n' \
+        u'\U0001F698 <code>Car.........{color} {model} {number}</code>'
 
-car_settings_dynamic = 'CAR SETTINGS:\n' \
-        'Car model: <b>{model}</b>, \n' \
-        'Car color: <b>{color}</b>\n' \
-        'Car number: <b>{number}</b>\n' \
-        'Car seats: <b>{seats}</b>'
+car_settings_dynamic = '<code>      CAR SETTINGS:</code> \n\n' \
+        '<code>Car model.....{model}</code> \n' \
+        '<code>Car color.....{color}</code> \n' \
+        '<code>Car number....{number}</code> \n' \
+        '<code>Car seats.....{seats}</code>'
 
 
 driver_preference_none: Dict[str, str] = {
-    'work_hours': 'Enter today working schedule:\n' \
+    'work_hours': 'Enter todays working schedule:\n' \
                     'Format: HH:MM-HH:MM',
     'car_model': 'Enter car model:',
     'car_seats': 'Enter number of seats in the car:',
