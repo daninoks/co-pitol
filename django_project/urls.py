@@ -15,7 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
+from pilotCore.views import TelegramBotWebhookView
+
 
 urlpatterns = [
+    path('webhook/', csrf_exempt(TelegramBotWebhookView.as_view())),
     path('admin/', admin.site.urls),
 ]
