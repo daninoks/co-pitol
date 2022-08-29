@@ -1,11 +1,8 @@
 from typing import Dict
 
 ##### BUTTONS TEXT #####
-decline_order = u'\U0000274C' + ' DECLINE'
+decline_order = u'\U0000274C' + ' CANCEL'
 accept_order = u'\U00002714' + ' ACCEPT'
-
-prev_order = '<'
-next_order = '>'
 
 
 

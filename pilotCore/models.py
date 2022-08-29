@@ -12,6 +12,7 @@ from django.db import models
 from django.db.models import QuerySet, Manager, Max
 
 from pilotCore.handlers.utils.info import extract_user_data_from_update
+from pilotCore.handlers.utils import scrolling_row
 from pilotCore.handlers.order import broadcast
 from utils.models import CreateUpdateTracker, nb, CreateTracker, GetOrNoneManager
 
@@ -188,12 +189,14 @@ class Driver(CreateUpdateTracker):
 
 
 
+
 class DriverUtils(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)      # telegram_id
     mess_deleted = models.PositiveSmallIntegerField(default=0, editable=False)      # number deleted Messages after entry_points to conversation
     new_orders_num = models.PositiveSmallIntegerField(default=0, editable=False)
     new_orders_page = models.PositiveSmallIntegerField(default=0, editable=False)
-
+    my_orders_num = models.PositiveSmallIntegerField(default=0, editable=False)
+    my_orders_page = models.PositiveSmallIntegerField(default=0, editable=False)
 
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
@@ -217,31 +220,26 @@ class DriverUtils(CreateUpdateTracker):
     @classmethod
     def set_new_orders_page(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
         du, _ = cls.get_or_create_user(update, context)
-        if value == 0:
-            du.new_orders_page = 0
-        if value == -1:
-            du.new_orders_page = (
-                du.new_orders_num if du.new_orders_page == 0
-                else du.new_orders_page - 1
-            )
-        if value == -2:
-            du.new_orders_page = (
-                0 if du.new_orders_page == du.new_orders_num
-                else du.new_orders_page + 1
-            )
-        if re.match('^[+]?\d+', str(value)):
-            du.new_orders_page = value
-        du.save()
-        return du.new_orders_page
+        page = scrolling_row.scroll_layout_model_page(du, 'new_orders_page', 'new_orders_num', value)
+        return page
 
     @classmethod
     def set_new_orders_num(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
         du, _ = cls.get_or_create_user(update, context)
-        if du.new_orders_num != value:
-            du.new_orders_page = 0
-            du.new_orders_num = value
-        du.save()
-        return du.new_orders_num
+        page = scrolling_row.scroll_layout_model_pages(du, 'new_orders_page', 'new_orders_num', value)
+        return page
+
+    @classmethod
+    def set_my_orders_page(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
+        du, _ = cls.get_or_create_user(update, context)
+        page = scrolling_row.scroll_layout_model_page(du, 'my_orders_page', 'my_orders_num', value)
+        return page
+
+    @classmethod
+    def set_my_orders_num(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
+        du, _ = cls.get_or_create_user(update, context)
+        page = scrolling_row.scroll_layout_model_pages(du, 'my_orders_page', 'my_orders_num', value)
+        return page
 
 
 
@@ -299,5 +297,6 @@ class Order(CreateUpdateTracker):
         data = extract_user_data_from_update(update)
         o = cls.get_order(order_id)
         o.pointed = None
+        o.status = cls.ORD_OPEN
         o.save()
         return o

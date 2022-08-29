@@ -66,10 +66,21 @@ def make_conversation_handler():
                     order_handlers.new_orders_menu,
                     pattern=format(
                         f'^{driver_data.NEW_ORDERS_BUTTON}$|'
-                        f'^{order_data.PREV_ORDER}$|'
-                        f'{order_data.DYNAMIC_CB_NEW_ORD_PATT}'
-                        f'^{order_data.NEXT_ORDER}$|'
-                        f'^{order_data.ACCEPT_ORDER_BUTTON}$'
+                        f'^{order_data.NOM_PREV_ORDER}$|'
+                        f'{order_data.NOM_DYNAMIC_CB_ORD_PATT}'
+                        f'^{order_data.NOM_NEXT_ORDER}$|'
+                        f'^{order_data.NOM_ACCEPT_ORDER_BUTTON}$|'
+                        f'^{order_data.NOM_DECLINE_ORDER_BUTTON}$'
+                    )
+                ),
+                CallbackQueryHandler(
+                    order_handlers.my_orders_menu,
+                    pattern=format(
+                        f'^{driver_data.MY_ORDERS_BUTTON}$|'
+                        f'^{order_data.MOM_PREV_ORDER}$|'
+                        f'{order_data.MOM_DYNAMIC_CB_ORD_PATT}'
+                        f'^{order_data.MOM_NEXT_ORDER}$|'
+                        f'^{order_data.MOM_DECLINE_ORDER_BUTTON}$'
                     )
                 ),
                 CallbackQueryHandler(
