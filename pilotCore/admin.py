@@ -47,7 +47,7 @@ class DriverAdmin(admin.ModelAdmin):
     list_display = [
         'order_id', 'real_name', 'username', 'phone_number',
         'departure_time', 'travel_direction', 'seats',
-        'comment', 'status'
+        'comment', 'status', 'pointed'
     ]
     list_filter = ['status', 'departure_time']
     search_fields = ('order_id', 'departure_time', 'travel_direction')

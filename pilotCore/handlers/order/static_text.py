@@ -26,6 +26,6 @@ new_orders_body = '```     NEW ORDER RECIVED: \n' \
     u'\U0001F5FA  travel direction:...{direction} \n' \
     u'\U0001F6CB  seats reserved:.....{seats} \n' \
     u'\U0001F464  name:...............{name}' \
-    '{comment}```'
+    '{comment} \n\n {pointed}```'
 
-orders_empty = '```NO AVAILABLE ORDERD FOR NOW```'
+orders_empty = '``` NO AVAILABLE ORDERDS FOR NOW```'

@@ -67,7 +67,9 @@ def make_conversation_handler():
                     pattern=format(
                         f'^{driver_data.NEW_ORDERS_BUTTON}$|'
                         f'^{order_data.PREV_ORDER}$|'
-                        f'^{order_data.NEXT_ORDER}$'
+                        f'{order_data.DYNAMIC_CB_NEW_ORD_PATT}'
+                        f'^{order_data.NEXT_ORDER}$|'
+                        f'^{order_data.ACCEPT_ORDER_BUTTON}$'
                     )
                 ),
                 CallbackQueryHandler(

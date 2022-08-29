@@ -24,7 +24,7 @@ def make_keyboard_broadcast() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
-def make_keyboard_new_orders(orders_empty: bool) -> InlineKeyboardMarkup:
+def make_keyboard_new_orders(orders_empty: bool, layout: list) -> InlineKeyboardMarkup:
     if orders_empty:
         buttons = [
             [
@@ -35,17 +35,41 @@ def make_keyboard_new_orders(orders_empty: bool) -> InlineKeyboardMarkup:
             ],
         ]
     else:
-        buttons = [
-            [
+        buttons = []
+        upper_row = []
+
+        left_button = [
+            InlineKeyboardButton(
+                order_static.prev_order,
+                callback_data=order_data.PREV_ORDER
+            ),
+        ]
+        upper_row.extend(left_button)
+
+        number_buttons_layout = []
+        for value in layout:
+            if value != '\U000025CF':
+                value_view = int(value) + 1
+            else:
+                value_view = value
+            number_buttons_layout.append(
                 InlineKeyboardButton(
-                    order_static.prev_order,
-                    callback_data=order_data.PREV_ORDER
+                    str(value_view),
+                    callback_data=f'cb:{value}'
                 ),
-                InlineKeyboardButton(
-                    order_static.next_order,
-                    callback_data=order_data.NEXT_ORDER
-                )
-            ],
+            )
+        upper_row.extend(number_buttons_layout)
+
+        right_button = [
+            InlineKeyboardButton(
+                order_static.next_order,
+                callback_data=order_data.NEXT_ORDER
+            )
+        ]
+        upper_row.extend(right_button)
+        buttons.append(upper_row)
+
+        lower_raw_buttons = [
             [
                 # maybe HIDE instead?
                 # InlineKeyboardButton(
@@ -64,4 +88,5 @@ def make_keyboard_new_orders(orders_empty: bool) -> InlineKeyboardMarkup:
                 )
             ],
         ]
+        buttons.extend(lower_raw_buttons)
     return InlineKeyboardMarkup(buttons)

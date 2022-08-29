@@ -224,11 +224,13 @@ class DriverUtils(CreateUpdateTracker):
                 du.new_orders_num if du.new_orders_page == 0
                 else du.new_orders_page - 1
             )
-        if value == 1:
+        if value == -2:
             du.new_orders_page = (
                 0 if du.new_orders_page == du.new_orders_num
                 else du.new_orders_page + 1
             )
+        if re.match('^[+]?\d+', str(value)):
+            du.new_orders_page = value
         du.save()
         return du.new_orders_page
 
@@ -236,7 +238,7 @@ class DriverUtils(CreateUpdateTracker):
     def set_new_orders_num(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
         du, _ = cls.get_or_create_user(update, context)
         if du.new_orders_num != value:
-            cls.set_new_orders_page(update, context, 0)
+            du.new_orders_page = 0
             du.new_orders_num = value
         du.save()
         return du.new_orders_num
@@ -266,6 +268,8 @@ class Order(CreateUpdateTracker):
         choices=ORDER_STATE,
         default=ORD_OPEN
     )
+    pointed = models.PositiveIntegerField(default=None,  **nb)    # driver_id
+
 
     def save(cls, *args, **kw):
         if cls.order_id == 0:
@@ -277,10 +281,23 @@ class Order(CreateUpdateTracker):
         return super(Order, cls).save(*args, **kw)
 
     @classmethod
-    def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        data = extract_user_data_from_update(update)
-        o, exists = cls.objects.get_or_create(user_id=data["user_id"])
-        return o, exists
+    def get_order(cls, ord_id: int) -> Optional[Order]:
+        o = cls.objects.filter(order_id= ord_id).first()
+        return o
 
-    # @classmethod
-    # def
+    @classmethod
+    def link_order(cls, update: Update, context: CallbackContext, order_id: int) -> Optional[Order]:
+        data = extract_user_data_from_update(update)
+        o = cls.get_order(order_id)
+        o.pointed = data["user_id"]
+        o.status = cls.ORD_PENDING
+        o.save()
+        return o
+
+    @classmethod
+    def unlink_order(cls, update: Update, context: CallbackContext, order_id: int) -> Optional[Order]:
+        data = extract_user_data_from_update(update)
+        o = cls.get_order(order_id)
+        o.pointed = None
+        o.save()
+        return o
