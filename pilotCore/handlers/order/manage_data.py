@@ -4,6 +4,8 @@ from pilotCore.handlers.order import static_text
 
 # CallbackQueryHandler data:
 
+# broadcast message:
+GO_TO_NEW_ORDERS = 'G_T_NW_RDRS'
 # new_orders_menu:
 NOM_DECLINE_ORDER_BUTTON = 'NOM_DCLN_RDR_BTTN'
 NOM_ACCEPT_ORDER_BUTTON = 'NOM_CCPT_RDR_BTTN'

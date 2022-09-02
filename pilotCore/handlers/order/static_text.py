@@ -4,7 +4,7 @@ from typing import Dict
 decline_order = u'\U0000274C' + ' CANCEL'
 accept_order = u'\U00002714' + ' ACCEPT'
 
-
+go_to_new_orders = 'CHECK ORDERS'
 
 
 ### MESSAGE TEXT ###

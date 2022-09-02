@@ -3,7 +3,7 @@ import re
 from telegram import InlineKeyboardButton
 
 
-
+# PAGE SCROLL:
 def scroll_layout_handler(current_page: int, pages_number: int) -> list:
     """Lauout for scroling row"""
     current_page_marker = u'\U000025CF'

@@ -103,6 +103,7 @@ class User(CreateUpdateTracker):
 class Driver(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
     username = models.CharField(max_length=32, editable=False, **nb)
+    mobile_number = models.PositiveBigIntegerField(editable=True, default=0)
     work_hours = models.CharField(max_length=32, default=None, **nb)
     car_model = models.CharField(max_length=32, default=None, **nb)
     car_seats = models.PositiveSmallIntegerField(default=0)
@@ -127,65 +128,37 @@ class Driver(CreateUpdateTracker):
         return cls.objects.filter(username__iexact=username).first()
 
     @classmethod
-    def update_model(cls, field_data, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        u, _ = cls.get_or_create_user(update, context)
-        u.car_model = field_data
-        u.save()
-        return u
+    def update_field(cls, update: Update, context: CallbackContext, field: dict) -> Optional[Driver]:
+        d, _ = cls.get_or_create_user(update, context)
+        setattr(d, field.get('name'), field.get('data'))
+        d.save()
+        return d
 
     @classmethod
-    def update_seats(cls, field_data, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        u, _ = cls.get_or_create_user(update, context)
-        u.car_seats = field_data
-        u.save()
-        return u
-
-    @classmethod
-    def update_color(cls, field_data, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        u, _ = cls.get_or_create_user(update, context)
-        u.car_color = field_data
-        u.save()
-        return u
-
-    @classmethod
-    def update_number(cls, field_data, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        u, _ = cls.get_or_create_user(update, context)
-        u.car_number = field_data
-        u.save()
-        return u
-
-    @classmethod
-    def update_hours(cls, field_data, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        u, _ = cls.get_or_create_user(update, context)
-        u.work_hours = field_data
-        u.save()
-        return u
-
-    @classmethod
-    def add_direction(cls, field_data, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        u, _ = cls.get_or_create_user(update, context)
-        if u.direction is None:
-            u.direction = f' -> {field_data}'
+    def add_direction(cls, field_data, update: Update, context: CallbackContext) -> Optional[Driver]:
+        d, _ = cls.get_or_create_user(update, context)
+        if d.direction is None:
+            d.direction = f' -> {field_data}'
         else:
-            u.direction = f'{u.direction} -> {field_data}'
-        u.save()
-        return u
+            d.direction = f'{d.direction} -> {field_data}'
+        d.save()
+        return d
 
     @classmethod
-    def remove_direction(cls, field_data, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        u, _ = cls.get_or_create_user(update, context)
+    def remove_direction(cls, field_data, update: Update, context: CallbackContext) -> Optional[Driver]:
+        d, _ = cls.get_or_create_user(update, context)
         deleted_direction = re.sub(f'-> {field_data}', '', u.direction)
-        u.direction = deleted_direction
-        u.save()
-        return u
+        d.direction = deleted_direction
+        d.save()
+        return d
 
     @classmethod
-    def remove_last_direction(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        u, _ = cls.get_or_create_user(update, context)
-        deleted_direction = re.sub(' -> ([a-zA-Z]\w+)$', '', u.direction)
-        u.direction = deleted_direction
-        u.save()
-        return u
+    def remove_last_direction(cls, update: Update, context: CallbackContext) -> Optional[Driver]:
+        d, _ = cls.get_or_create_user(update, context)
+        deleted_direction = re.sub(' -> ([a-zA-Z]\w+)$', '', d.direction)
+        d.direction = deleted_direction
+        d.save()
+        return d
 
 
 
@@ -197,6 +170,8 @@ class DriverUtils(CreateUpdateTracker):
     new_orders_page = models.PositiveSmallIntegerField(default=0, editable=False)
     my_orders_num = models.PositiveSmallIntegerField(default=0, editable=False)
     my_orders_page = models.PositiveSmallIntegerField(default=0, editable=False)
+    last_msg_id = models.PositiveBigIntegerField(default=0, editable=False)
+
 
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
@@ -205,13 +180,22 @@ class DriverUtils(CreateUpdateTracker):
         return du, exists
 
     @classmethod
+    def get_user_by_username_or_user_id(cls, username_or_user_id: Union[str, int]) -> DriverUtils:
+        """ Search user in DB, return User or None if not found """
+        username = str(username_or_user_id).replace("@", "").strip().lower()
+        if username.isdigit():  # user_id
+            return cls.objects.filter(user_id=int(username)).first()
+        return cls.objects.filter(username__iexact=username).first()
+        # return cls.objects.filter(user_id=int(username_or_user_id)).first()
+
+    @classmethod
     def reset_counter(cls, update: Update, context: CallbackContext) -> None:
         du, _ = cls.get_or_create_user(update, context)
         du.mess_deleted = 0
         du.save()
 
     @classmethod
-    def inc_counter(cls, update: Update, context: CallbackContext) -> DriverUtils:
+    def inc_counter(cls, update: Update, context: CallbackContext) -> Optional[DriverUtils]:
         du, _  = cls.get_or_create_user(update, context)
         du.mess_deleted += 1
         du.save()
@@ -241,6 +225,14 @@ class DriverUtils(CreateUpdateTracker):
         page = scrolling_row.scroll_layout_model_pages(du, 'my_orders_page', 'my_orders_num', value)
         return page
 
+    @classmethod
+    def set_last_msg_id(cls, update: Update, context: CallbackContext) -> Optional[int]:
+        du, _ = cls.get_or_create_user(update, context)
+        du.last_msg_id = update.callback_query.message.message_id
+        du.save()
+        return du.last_msg_id
+
+
 
 
 class Order(CreateUpdateTracker):
@@ -266,7 +258,7 @@ class Order(CreateUpdateTracker):
         choices=ORDER_STATE,
         default=ORD_OPEN
     )
-    pointed = models.PositiveIntegerField(default=None,  **nb)    # driver_id
+    pointed = models.PositiveBigIntegerField(default=None,  **nb)    # driver_id
 
 
     def save(cls, *args, **kw):
@@ -275,7 +267,7 @@ class Order(CreateUpdateTracker):
             # double check(issues in upper case):
             orders_len = len(list(Order.objects.values('order_id')))
             cls.order_id = orders_len + 1
-            # cathcer = broadcast.broadcast_new_order(cls, Driver)
+            cathcer = broadcast.broadcast_new_order(cls, Driver, DriverUtils)
         return super(Order, cls).save(*args, **kw)
 
     @classmethod

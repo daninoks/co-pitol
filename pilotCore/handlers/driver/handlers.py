@@ -7,12 +7,12 @@ from telegram import (
 )
 from telegram.ext import CallbackContext
 
-from pilotCore import conversation
+from django_project.settings import TELEGRAM_TOKEN
 
+from pilotCore import conversation
 from pilotCore.handlers.driver import keyboards, manage_data, static_text
 from pilotCore.models import User, Driver, DriverUtils
-
-from django_project.settings import TELEGRAM_TOKEN
+from pilotCore.handlers.order import handlers as order_handlers
 
 
 # wrong field allert
@@ -25,7 +25,9 @@ from django_project.settings import TELEGRAM_TOKEN
 
 def delete_missclicked_messages(update: Update, context: CallbackContext) -> None:
     """Deleting messages from User outside the input conversation"""
-    cu =  DriverUtils.inc_counter(update, context)
+    DriverUtils.inc_counter(update, context)
+
+
     Bot(TELEGRAM_TOKEN).deleteMessage(
         chat_id=update.message.chat.id,
         message_id=update.message.message_id,
@@ -36,6 +38,7 @@ def delete_missclicked_messages(update: Update, context: CallbackContext) -> Non
 def driver_main(update: Update, context: CallbackContext) -> int:
     """Handle DRIVER_BUTTON Query command"""
     d, _ = Driver.get_or_create_user(update, context)
+    DriverUtils.set_last_msg_id(update, context)
 
     text = static_text.driver_main_text.format(
         hours = 'Please set in WORK TIME' if d.work_hours is None else d.work_hours,
@@ -46,11 +49,21 @@ def driver_main(update: Update, context: CallbackContext) -> int:
         direction = 'Set in DIRECTION' if d.direction is None or d.direction == '' else d.direction
     )
 
+    # alert_symbol = u'\U000026A0 '
+    new_ord_field = (
+        '' if (new_ord_count := len(order_handlers.update_new_order_list(update))) == 0
+        else f'[{new_ord_count}]'
+    )
+    my_ord_field = (
+        '' if (my_ord_couter := len(order_handlers.update_my_order_list(update))) == 0
+        else f'[{my_ord_couter}]'
+    )
+
     context.bot.edit_message_text(
         text=text,
         chat_id=update.callback_query.message.chat.id,
         message_id=update.callback_query.message.message_id,
-        reply_markup=keyboards.make_keyboard_driver_main(),
+        reply_markup=keyboards.make_keyboard_driver_main(new_ord_field, my_ord_field),
         parse_mode=ParseMode.HTML
     )
     return conversation.MAIN_TREE
@@ -61,6 +74,7 @@ def car_settings(update: Update, context: CallbackContext) -> int:
     d, _ = Driver.get_or_create_user(update, context)
 
     text = static_text.car_settings_dynamic.format(
+        mobile = '-' if d.mobile_number is None else d.mobile_number,
         model = '-' if d.car_model is None else d.car_model,
         color = '-' if d.car_color is None else d.car_color,
         number = '-' if d.car_number is None else d.car_number,
@@ -126,28 +140,19 @@ def set_hours(update: Update, context: CallbackContext) -> int:
     field_data = update.message.text
 
     if re.match('^([0-9][0-9]:[0-9][0-9]-[0-9][0-9]:[0-9][0-9])$', field_data):
-        d = Driver.update_hours(field_data, update, context)
-
-        text = format(
-            f'Todays working schedule:\n'
-            f'<b>{d.work_hours}</b>\n'
-            f'Format: HH:MM-HH:MM'
+        updating_field = {
+            'name': 'work_hours',
+            'data': field_data
+        }
+        d = Driver.update_field(update, context, updating_field)
+        text = static_text.set_hours_text.format(
+            hours = getattr(d, updating_field.get('name'))
         )
-
         redirection = conversation.MAIN_TREE
     else:
-        d, _ = Driver.get_or_create_user(update, context)
-        # if d.work_hours:
-        #     hours = d.work_hours
-        # else:
-        #     hours = 'not set'
-        text = format(
-            f'WRONG FORMAT:\n'
-            f'<b>{d.work_hours}</b>\n'
-            'Please use following FORMATTING:\n'
-            'HH:MM-HH:MM'
+        text = static_text.set_hours_text.format(
+            hours = '!WRONG FORMAT!'
         )
-
         redirection = conversation.HOURS_CONV
 
     Bot(TELEGRAM_TOKEN).deleteMessage(
@@ -156,15 +161,14 @@ def set_hours(update: Update, context: CallbackContext) -> int:
         timeout=None
     )
 
-    cu =  DriverUtils.inc_counter(update, context)
-    prev_mess_id = update.message.message_id - cu.mess_deleted
+    du, _ = DriverUtils.get_or_create_user(update, context)
 
     context.bot.edit_message_text(
         text=text,
         chat_id=update.message.chat.id,
-        message_id=prev_mess_id,
+        message_id=du.last_msg_id,
         reply_markup=keyboards.make_keyboard_back_driver_main(),
-        parse_mode=ParseMode.HTML
+        parse_mode=ParseMode.MARKDOWN
     )
     return redirection
 
@@ -174,8 +178,8 @@ def set_direction(update: Update, context: CallbackContext) -> int:
     d, _ = Driver.get_or_create_user(update, context)
     call_back = update.callback_query.data
 
-    if d.direction is None:
-        text = 'WELCOME DIRECTIONS'
+    if d.direction is None or d.direction == '':
+        text = static_text.set_direction_empty
     else:
         text = d.direction
 
@@ -188,9 +192,6 @@ def set_direction(update: Update, context: CallbackContext) -> int:
             d = Driver.remove_last_direction(update, context)
             text = d.direction
 
-    if '' == text:
-        text = 'WELCOME DIRECTIONS'
-
     context.bot.edit_message_text(
         text=text,
         chat_id=update.callback_query.message.chat.id,
@@ -198,7 +199,6 @@ def set_direction(update: Update, context: CallbackContext) -> int:
         reply_markup=keyboards.make_keyboard_set_direction(),
         parse_mode=ParseMode.HTML
     )
-
     return conversation.MAIN_TREE
 
 
@@ -212,66 +212,72 @@ def bot_actions_set(update, context, text) -> None:
         timeout=None
     )
 
-    cu =  DriverUtils.inc_counter(update, context)
-    prev_mess_id = update.message.message_id - cu.mess_deleted
+    du, _ = DriverUtils.get_or_create_user(update, context)
 
     context.bot.edit_message_text(
         text=text,
         chat_id=update.message.chat.id,
-        message_id=prev_mess_id,
+        message_id=du.last_msg_id,
         reply_markup=keyboards.make_keyboard_back_car_settings(),
         parse_mode=ParseMode.HTML
     )
 
-
 def set_model(update: Update, context: CallbackContext) -> int:
     """Set car model handler"""
-    field_data = update.message.text
-    d = Driver.update_model(field_data, update, context)
+    updating_field = {
+        'name': 'car_model',
+        'data': update.message.text
+    }
 
-    text = format(
-        f'Your car model changed to:\n'
-        f'<b>{d.car_model}</b>'
+    d = Driver.update_field(update, context, updating_field)
+
+    text = static_text.driver_preference_text.get(updating_field.get('name')).format(
+        cb_var = updating_field.get('data')
     )
-
     bot_actions_set(update, context, text)
     return conversation.MAIN_TREE
 
 def set_seats(update: Update, context: CallbackContext) -> int:
     """Set car seats handler"""
-    field_data = update.message.text
-    d = Driver.update_seats(field_data, update, context)
+    updating_field = {
+        'name': 'car_seats',
+        'data': update.message.text
+    }
 
-    text = format(
-        f'Your car seats number changed to:\n'
-        f'<b>{d.car_seats}</b>'
+    d = Driver.update_field(update, context, updating_field)
+
+    text = static_text.driver_preference_text.get(updating_field.get('name')).format(
+        cb_var = updating_field.get('data')
     )
-
     bot_actions_set(update, context, text)
     return conversation.MAIN_TREE
 
 def set_color(update: Update, context: CallbackContext) -> int:
     """Set car color handler"""
-    field_data = update.message.text
-    d = Driver.update_color(field_data, update, context)
+    updating_field = {
+        'name': 'car_color',
+        'data': update.message.text
+    }
 
-    text = format(
-        f'Your car model changed to:\n'
-        f'<b>{d.car_color}</b>'
+    d = Driver.update_field(update, context, updating_field)
+
+    text = static_text.driver_preference_text.get(updating_field.get('name')).format(
+        cb_var = updating_field.get('data')
     )
-
     bot_actions_set(update, context, text)
     return conversation.MAIN_TREE
 
 def set_number(update: Update, context: CallbackContext) -> int:
     """Set car number handler"""
-    field_data = update.message.text
-    d = Driver.update_number(field_data, update, context)
+    updating_field = {
+        'name': 'car_number',
+        'data': update.message.text
+    }
 
-    text = format(
-        f'Your car number changed to:\n'
-        f'<b>{d.car_number}</b>'
+    d = Driver.update_field(update, context, updating_field)
+
+    text = static_text.driver_preference_text.get(updating_field.get('name')).format(
+        cb_var = updating_field.get('data')
     )
-
     bot_actions_set(update, context, text)
     return conversation.MAIN_TREE

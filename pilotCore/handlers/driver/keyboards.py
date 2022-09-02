@@ -6,15 +6,15 @@ from pilotCore.handlers.driver import static_text, manage_data
 
 
 
-def make_keyboard_driver_main() -> InlineKeyboardMarkup:
+def make_keyboard_driver_main(newOrd_alert: str, myOrd_alert: str) -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
-                static_text.new_orders,
+                static_text.new_orders.format(alert = newOrd_alert),
                 callback_data=manage_data.NEW_ORDERS_BUTTON
             ),
             InlineKeyboardButton(
-                static_text.my_orders,
+                static_text.my_orders.format(alert = myOrd_alert),
                 callback_data=manage_data.MY_ORDERS_BUTTON
             )
         ],

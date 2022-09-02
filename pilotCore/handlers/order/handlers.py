@@ -1,13 +1,14 @@
 import re
 
-from django.db.models import Q
-
 from telegram import (
     ParseMode, Update, ForceReply, ReplyKeyboardRemove,
     InlineKeyboardButton, InlineKeyboardMarkup,
     Bot, ForceReply
 )
+
 from telegram.ext import CallbackContext
+
+from django.db.models import Q
 
 from pilotCore import conversation
 from pilotCore.handlers.utils import scrolling_row
@@ -18,6 +19,7 @@ from pilotCore.handlers.order import static_text, manage_data, keyboards
 
 
 def update_new_order_list(update) -> list:
+    """Update list of pages for new_orders_menu"""
     new_orders_open = list(Order.objects.filter(
             Q(status=Order.ORD_OPEN) | Q(status=Order.ORD_PENDING, pointed=update.callback_query.message.chat.id)
         ).values(
@@ -25,23 +27,13 @@ def update_new_order_list(update) -> list:
             'seats', 'real_name', 'comment', 'status', 'pointed'
         )
     )
-    # new_orders_pendig = list(
-    #     Order.objects.filter(
-    #         status=Order.ORD_PENDING,
-    #         pointed=update.callback_query.message.chat.id,
-    #     ).values(
-    #         'order_id', 'departure_time', 'travel_direction',
-    #         'seats', 'real_name', 'comment', 'status', 'pointed'
-    # ))
-    # if new_orders_pendig:
-    #     new_orders_open.extend(new_orders_pendig)
     return new_orders_open
 
 def new_orders_menu(update: Update, context: CallbackContext) -> int:
     """Handle NEW_ORDERS_BUTTON Query command"""
     call_back = update.callback_query.data
-
     new_orders = update_new_order_list(update)
+    decline_button = False
 
     if new_orders:
         ord_empty = False
@@ -65,7 +57,9 @@ def new_orders_menu(update: Update, context: CallbackContext) -> int:
 
         # keyboard pages:
         pages_layout = scrolling_row.scroll_layout_handler(no_page, no_num)
-        decline_button = False
+
+        print('pages ' + str(no_num))
+        print('current page ' + str(no_page))
 
         # current page object:
         orderObj = new_orders[no_page]
@@ -80,8 +74,6 @@ def new_orders_menu(update: Update, context: CallbackContext) -> int:
 
         if orderObj.get('pointed'):
             decline_button = True
-
-
 
         text = static_text.new_orders_body.format(
             order_id = (
@@ -129,6 +121,7 @@ def new_orders_menu(update: Update, context: CallbackContext) -> int:
 
 
 def update_my_order_list(update) -> list:
+    """Update list of pages for my_orders_menu"""
     new_orders_pendig = list(
         Order.objects.filter(
             status=Order.ORD_PENDING,
@@ -215,6 +208,3 @@ def my_orders_menu(update: Update, context: CallbackContext) -> int:
         parse_mode=ParseMode.MARKDOWN
     )
     return conversation.MAIN_TREE
-
-
-    pass

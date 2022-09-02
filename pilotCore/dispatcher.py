@@ -40,6 +40,12 @@ def make_conversation_handler():
         entry_points=[
             CommandHandler("start", welcome_handlers.command_start),
             # CommandHandler("driver", driver_handlers.driver_main),
+            CallbackQueryHandler(
+                order_handlers.new_orders_menu,
+                pattern=format(
+                    f'^{order_data.GO_TO_NEW_ORDERS}$'
+                )
+            )
         ],
         states={
             conversation.MAIN_TREE: [
@@ -172,6 +178,12 @@ def make_conversation_handler():
         fallbacks=[
             CommandHandler('start', welcome_handlers.command_start),
             # CommandHandler("driver", driver_handlers.driver_main),
+            # CallbackQueryHandler(
+            #     order_handlers.new_orders_menu,
+            #     pattern=format(
+            #         f'^{order_data.GO_TO_NEW_ORDERS}$'
+            #     )
+            # )
         ],
     )
 

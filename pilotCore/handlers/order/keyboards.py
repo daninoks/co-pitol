@@ -9,20 +9,16 @@ from pilotCore.handlers.utils import scrolling_row
 
 
 
-# def make_keyboard_broadcast() -> InlineKeyboardMarkup:
-#     buttons = [
-#         [
-#             InlineKeyboardButton(
-#                 order_static.decline_order,
-#                 callback_data=order_data.DECLINE_ORDER_BUTTON
-#             ),
-#             InlineKeyboardButton(
-#                 order_static.accept_order,
-#                 callback_data=order_data.ACCEPT_ORDER_BUTTON
-#             )
-#         ],
-#     ]
-#     return InlineKeyboardMarkup(buttons)
+def make_keyboard_broadcast() -> InlineKeyboardMarkup:
+    buttons = [
+        [
+            InlineKeyboardButton(
+                order_static.go_to_new_orders,
+                callback_data=order_data.GO_TO_NEW_ORDERS
+            )
+        ],
+    ]
+    return InlineKeyboardMarkup(buttons)
 
 
 def make_keyboard_new_orders(orders_empty: bool, layout: list, decline_button: bool) -> InlineKeyboardMarkup:
@@ -36,16 +32,8 @@ def make_keyboard_new_orders(orders_empty: bool, layout: list, decline_button: b
             ],
         ]
     else:
-        buttons = []
-        scroll_row = scrolling_row.scroll_layout_keyboard(
-            layout,
-            order_data.NOM_CB_PREFIX,
-            order_data.NOM_PREV_ORDER,
-            order_data.NOM_NEXT_ORDER,
-        )
-
-        lower_raw_buttons = []
-        # Hide CANCEL if order Open.
+        # Hide CANCEL if order Open and ACCEPT if order Pending:.
+        middle_row = []
         if decline_button:
             cancel_button = [
                 InlineKeyboardButton(
@@ -53,15 +41,22 @@ def make_keyboard_new_orders(orders_empty: bool, layout: list, decline_button: b
                     callback_data=order_data.NOM_DECLINE_ORDER_BUTTON
                 ),
             ]
-            lower_raw_buttons.extend(cancel_button)
+            middle_row.extend(cancel_button)
+        else:
+            accept_button = [
+                InlineKeyboardButton(
+                    order_static.accept_order,
+                    callback_data=order_data.NOM_ACCEPT_ORDER_BUTTON
+                )
+            ]
+            middle_row.extend(accept_button)
 
-        accept_button = [
-            InlineKeyboardButton(
-                order_static.accept_order,
-                callback_data=order_data.NOM_ACCEPT_ORDER_BUTTON
-            )
-        ]
-
+        scroll_row = scrolling_row.scroll_layout_keyboard(
+            layout,
+            order_data.NOM_CB_PREFIX,
+            order_data.NOM_PREV_ORDER,
+            order_data.NOM_NEXT_ORDER,
+        )
         back_button = [
             InlineKeyboardButton(
                 driver_static.back_driver_main,
@@ -69,9 +64,9 @@ def make_keyboard_new_orders(orders_empty: bool, layout: list, decline_button: b
             )
         ]
 
-        lower_raw_buttons.extend(accept_button)
+        buttons = []
         buttons.append(scroll_row)
-        buttons.append(lower_raw_buttons)
+        buttons.append(middle_row)
         buttons.append(back_button)
     return InlineKeyboardMarkup(buttons)
 
@@ -96,7 +91,7 @@ def make_keyboard_my_orders(orders_empty: bool, layout: list) -> InlineKeyboardM
         )
         buttons.append(scroll_row)
 
-        lower_raw_buttons = [
+        middle_row = [
             [
                 # maybe HIDE instead?
                 InlineKeyboardButton(
@@ -111,5 +106,5 @@ def make_keyboard_my_orders(orders_empty: bool, layout: list) -> InlineKeyboardM
                 )
             ],
         ]
-        buttons.extend(lower_raw_buttons)
+        buttons.extend(middle_row)
     return InlineKeyboardMarkup(buttons)

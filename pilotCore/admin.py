@@ -31,7 +31,7 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(Driver)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'user_id', 'username', 'work_hours', 'direction',
+        'user_id', 'username', 'mobile_number', 'work_hours', 'direction',
         'car_model', 'car_seats', 'car_color', 'car_number'
     ]
 
@@ -39,7 +39,9 @@ class DriverAdmin(admin.ModelAdmin):
 @admin.register(DriverUtils)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'user_id', 'mess_deleted', 'new_orders_num', 'new_orders_page'
+        'user_id', 'mess_deleted',
+        'new_orders_num', 'new_orders_page',
+        'last_msg_id'
     ]
 
 @admin.register(Order)
