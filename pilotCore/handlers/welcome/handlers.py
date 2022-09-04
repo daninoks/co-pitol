@@ -14,7 +14,6 @@ from pilotCore.handlers.order import broadcast
 
 def command_start(update: Update, context: CallbackContext) -> int:
     """Handle start command"""
-    cu = DriverUtils.reset_counter(update, context)    # reset needed only when commands handled
 
     text = static_text.command_start_text
     print('---> Comand start handled')

@@ -30,6 +30,8 @@ from pilotCore.handlers.driver import handlers as driver_handlers
 from pilotCore.handlers.driver import manage_data as driver_data
 from pilotCore.handlers.order import handlers as order_handlers
 from pilotCore.handlers.order import manage_data as order_data
+from pilotCore.handlers.operator import handlers as operator_handlers
+from pilotCore.handlers.operator import manage_data as operator_data
 
 
 TELEGRAM_TOKEN = TELEGRAM_TOKEN
@@ -39,6 +41,7 @@ def make_conversation_handler():
     conv_handler = ConversationHandler(
         entry_points=[
             CommandHandler("start", welcome_handlers.command_start),
+            CommandHandler("reg_operator", operator_handlers.reg_operator),
             # CommandHandler("driver", driver_handlers.driver_main),
             CallbackQueryHandler(
                 order_handlers.new_orders_menu,
@@ -90,6 +93,12 @@ def make_conversation_handler():
                     )
                 ),
                 CallbackQueryHandler(
+                    driver_handlers.my_rides,
+                    pattern=format(
+                        f'^{driver_data.MY_RIDES_BUTTON}$'
+                    )
+                ),
+                CallbackQueryHandler(
                     driver_handlers.car_settings,
                     pattern=format(
                         f'^{driver_data.CAR_SETTINGS_BUTTON}$|'
@@ -99,24 +108,16 @@ def make_conversation_handler():
                 CallbackQueryHandler(
                     driver_handlers.driver_preference,
                     pattern=format(
-                        f'^{driver_data.WORK_HOURS_BUTTON}$|'
                         f'^{driver_data.CAR_MODEL_BUTTON}$|'
                         f'^{driver_data.CAR_SEATS_BUTTON}$|'
                         f'^{driver_data.CAR_COLOR_BUTTON}$|'
-                        f'^{driver_data.CAR_NUMBER_BUTTON}$'
-                    )
-                ),
-                CallbackQueryHandler(
-                    driver_handlers.set_direction,
-                    pattern=format(
-                        f'^{driver_data.DIRECTION_BUTTON}$|'
-                        f'^{driver_data.DELETE_CITY_BUTTON}$|'
-                        f'{driver_data.CITIES_PATTERN}'
+                        f'^{driver_data.CAR_NUMBER_BUTTON}$|'
+                        f'^{driver_data.MOBILE_NUMBER_BUTTON}$'
                     )
                 ),
                 # Catch unnessesary messages from user:
                 MessageHandler(
-                    Filters.regex('^(?!\/start).*$'), driver_handlers.delete_missclicked_messages
+                    Filters.regex('^(?!\/).*$'), driver_handlers.delete_missclicked_messages
                 ),
             ],
             conversation.MODEL_CONV: [
@@ -127,7 +128,7 @@ def make_conversation_handler():
                     )
                 ),
                 MessageHandler(
-                    Filters.regex('^(?!\/start).*$'), driver_handlers.set_model
+                    Filters.regex('^(?!\/).*$'), driver_handlers.set_model
                 ),
             ],
             conversation.SEATS_CONV: [
@@ -138,7 +139,7 @@ def make_conversation_handler():
                     )
                 ),
                 MessageHandler(
-                    Filters.regex('^(?!\/start).*$'), driver_handlers.set_seats
+                    Filters.regex('^(?!\/).*$'), driver_handlers.set_seats
                 ),
             ],
             conversation.COLOR_CONV: [
@@ -149,7 +150,7 @@ def make_conversation_handler():
                     )
                 ),
                 MessageHandler(
-                    Filters.regex('^(?!\/start).*$'), driver_handlers.set_color
+                    Filters.regex('^(?!\/).*$'), driver_handlers.set_color
                 ),
             ],
             conversation.NUMBER_CONV: [
@@ -160,23 +161,49 @@ def make_conversation_handler():
                     )
                 ),
                 MessageHandler(
-                    Filters.regex('^(?!\/start).*$'), driver_handlers.set_number
+                    Filters.regex('^(?!\/).*$'), driver_handlers.set_number
                 ),
             ],
-            conversation.HOURS_CONV: [
+            conversation.MOBILE_NUMBER_CONV: [
+                CallbackQueryHandler(
+                    driver_handlers.car_settings,
+                    pattern=format(
+                        f'^{driver_data.BACK_CAR_SETTING_BUTTON}$'
+                    )
+                ),
+                MessageHandler(
+                    Filters.regex('^(?!\/).*$'), driver_handlers.set_mobile_number
+                ),
+            ],
+            conversation.RIDES_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.driver_main,
                     pattern=format(
                         f'^{driver_data.BACK_DRIVER_MAIN_BUTTON}$'
                     )
                 ),
+                CallbackQueryHandler(
+                    driver_handlers.my_rides_edit,
+                    pattern=format(
+                        f'^{driver_data.MY_RIDES_NEW_BUTTON}$|'
+                        f'^{driver_data.MY_RIDES_EDIT_BUTTON}$|'
+                        f'^{driver_data.MY_RIDES_DEL_BUTTON}$'
+                    )
+                ),
+                CallbackQueryHandler(
+                    driver_handlers.set_direction,
+                    pattern=format(
+                        f'^{driver_data.DIRECTION_BUTTON}$'
+                    )
+                ),
                 MessageHandler(
-                    Filters.regex('^(?!\/start).*$'), driver_handlers.set_hours
+                    Filters.regex('^(?!\/).*$'), driver_handlers.my_rides_time
                 ),
             ],
         },
         fallbacks=[
             CommandHandler('start', welcome_handlers.command_start),
+            CommandHandler("reg_operator", operator_handlers.reg_operator),
             # CommandHandler("driver", driver_handlers.driver_main),
             # CallbackQueryHandler(
             #     order_handlers.new_orders_menu,
@@ -252,11 +279,11 @@ def process_telegram_event(update_json):
 def set_up_commands(bot_instance: Bot) -> None:
     langs_with_commands: Dict[str, Dict[str, str]] = {
         'en': {
-            'start': 'Start django bot 🚀',
+            'start': 'Start bot 🚀',
             'admin': 'Show admin info ℹ️',
         },
         'ru': {
-            'start': 'Запустить django бота 🚀',
+            'start': 'Запустить бота 🚀',
             'admin': 'Показать информацию для админов ℹ️',
         }
     }

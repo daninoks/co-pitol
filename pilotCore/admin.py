@@ -11,7 +11,7 @@ from django.shortcuts import render
 
 from django_project.settings import DEBUG
 
-from pilotCore.models import User, Driver, DriverUtils, Order
+from pilotCore.models import User, Driver, Order, DriverRides, DriverUtils
 
 
 # Register your models here.
@@ -22,7 +22,7 @@ class UserAdmin(admin.ModelAdmin):
         'language_code', 'deep_link',
         'created_at', 'updated_at', "is_blocked_bot"
     ]
-    list_filter = ["is_blocked_bot", ]
+    list_filter = ['is_blocked_bot', ]
     search_fields = ('username', 'user_id')
 
     actions = ['broadcast']
@@ -31,17 +31,27 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(Driver)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'user_id', 'username', 'mobile_number', 'work_hours', 'direction',
-        'car_model', 'car_seats', 'car_color', 'car_number'
+        'user_id', 'username', 'mobile_number',
+        'car_model', 'car_seats', 'car_color', 'car_number',
+        'registred'
     ]
+    list_filter = ['registred', ]
 
 
 @admin.register(DriverUtils)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
         'user_id', 'mess_deleted',
-        'new_orders_num', 'new_orders_page',
-        'last_msg_id'
+        'last_msg_id',
+        'myrides_page', 'selected_ride_id'
+    ]
+
+@admin.register(DriverRides)
+class DriverAdmin(admin.ModelAdmin):
+    list_display = [
+        'user_id', 'username',
+        'ride_id', 'departure_time', 'direction',
+        'seats_booked'
     ]
 
 @admin.register(Order)
