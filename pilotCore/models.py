@@ -159,10 +159,11 @@ class Driver(CreateUpdateTracker):
 
 
 class DriverRides(CreateUpdateTracker):
-    user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
+    # primary_key=True,
+    user_id = models.PositiveBigIntegerField(editable=False)  # telegram_id
     username = models.CharField(max_length=32, editable=False, **nb)
 
-    ride_id = models.PositiveIntegerField(default=0, editable=False)
+    ride_id = models.CharField(max_length=32, editable=False)
     departure_time = models.CharField(max_length=32, default=None, **nb)
     direction = models.TextField(default=None, **nb)
 
@@ -184,8 +185,13 @@ class DriverRides(CreateUpdateTracker):
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         """ python-telegram-bot's Update, Context --> User instance """
         data = extract_user_data_from_update(update)
-        drList = list(cls.objects.filter(user_id=data.get('user_id')).order_by('ride_id').last().values('ride_id'))
-        max_ride_id = drList[0].get('ride_id') + 1
+        try:
+            drList = list(cls.objects.filter(user_id=data.get('user_id')).order_by('ride_id').last().values('ride_id'))
+            # max_ride_id = drList[0].get('ride_id') + 1
+            mr_prefix = re.match('_(\d*)', drList[0].get('ride_id'))
+            max_ride_id = re.sub(f'{mr_prefix[1]}', f'{int(mr_prefix[1]) + 1}', drList[0].get('ride_id'))
+        except AttributeError:
+            max_ride_id = 'ORD_' + str(data.get('user_id')) + '_0'
         dr, exists = cls.objects.get_or_create(user_id=data.get('user_id'), ride_id=max_ride_id)
         return dr, exists
 
@@ -199,11 +205,10 @@ class DriverRides(CreateUpdateTracker):
         return dr, exists
 
     @classmethod
-    def new_time(cls, update: Update, context: CallbackContext, field_data: str, ride_id: int) -> str:
+    def new_time(cls, update: Update, context: CallbackContext, field_data: str) -> str:
         dr, _ = cls.get_or_create_user(update, context)
-        if m := re.match('(\d{2}[:,-]\d{2})|(\d{4})', field_data):
-            m1 = re.match('\d{2}', m[0])
-            dr.departure_time = f'{m1[0]}:{m1[1]}'
+        if m := re.match('(\d{2})([:-]|(?=.))(\d{2})', field_data):
+            dr.departure_time = f'{m[1]}:{m[3]}'
             dr.save()
         return dr.departure_time
 
@@ -216,33 +221,32 @@ class DriverRides(CreateUpdateTracker):
             dr.save()
         return dr.departure_time
 
+    # Directions:
+    @classmethod
+    def add_direction(cls, field_data, update: Update, context: CallbackContext) -> Optional[DriverRides]:
+        dr, _ = cls.get_or_create_user(update, context)
+        dr.direction = (
+            f' -> {field_data}' if dr.direction is None
+            else f'{dr.direction} -> {field_data}'
+        )
+        dr.save()
+        return dr
 
+    @classmethod
+    def remove_direction(cls, field_data, update: Update, context: CallbackContext) -> Optional[DriverRides]:
+        dr, _ = cls.get_or_create_user(update, context)
+        deleted_direction = re.sub(f'-> {field_data}', '', dr.direction)
+        dr.direction = deleted_direction
+        dr.save()
+        return dr
 
-    # @classmethod
-    # def add_direction(cls, field_data, update: Update, context: CallbackContext) -> Optional[DriverRides]:
-    #     dr, _ = cls.get_or_create_user(update, context)
-    #     dr.direction = (
-    #         f' -> {field_data}' if dr.direction is None
-    #         else f'{dr.direction} -> {field_data}'
-    #     )
-    #     dr.save()
-    #     return dr
-    #
-    # @classmethod
-    # def remove_direction(cls, field_data, update: Update, context: CallbackContext) -> Optional[DriverRides]:
-    #     dr, _ = cls.get_or_create_user(update, context)
-    #     deleted_direction = re.sub(f'-> {field_data}', '', dr.direction)
-    #     dr.direction = deleted_direction
-    #     dr.save()
-    #     return dr
-    #
-    # @classmethod
-    # def remove_last_direction(cls, update: Update, context: CallbackContext) -> Optional[DriverRides]:
-    #     dr, _ = cls.get_or_create_user(update, context)
-    #     deleted_direction = re.sub(' -> ([a-zA-Z]\w+)$', '', dr.direction)
-    #     dr.direction = deleted_direction
-    #     dr.save()
-    #     return dr
+    @classmethod
+    def remove_last_direction(cls, update: Update, context: CallbackContext) -> Optional[DriverRides]:
+        dr, _ = cls.get_or_create_user(update, context)
+        deleted_direction = re.sub(' -> ([a-zA-Z]\w+)$', '', dr.direction)
+        dr.direction = deleted_direction
+        dr.save()
+        return dr
 
 
 
@@ -321,6 +325,7 @@ class DriverUtils(CreateUpdateTracker):
         du, _ = cls.get_or_create_user(update, context)
         page = scrolling_row.scroll_layout_model_page(du, 'myrides_page', pages, value)
         return page
+
 
 
 

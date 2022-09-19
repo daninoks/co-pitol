@@ -202,8 +202,8 @@ def make_keyboard_set_direction() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton(
-                static_text.conf_direction,
-                callback_data=manage_data.BACK_DRIVER_MAIN_BUTTON
+                static_text.back_my_rides_bt,
+                callback_data=manage_data.BACK_MY_RIDES_BUTTON
             )
         ]
     ]
@@ -227,6 +227,18 @@ def make_keyboard_go_settings() -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup(buttons)
 
+# SOLO FORWARD BUTTONS:
+# def make_keyboard_my_rides_time_confirm() -> InlineKeyboardMarkup:
+#     """Confirm depart time and go directions"""
+#     buttons = [
+#         [
+#             InlineKeyboardButton(
+#                 static_text.my_rides_time_confirm,
+#                 callback_data=manage_data.BACK_CAR_SETTING_BUTTON
+#             )
+#         ]
+#     ]
+#     return InlineKeyboardMarkup(buttons)
 
 # SOLO BACK BUTTON KEYBOARDS:
 def make_keyboard_back_car_settings() -> InlineKeyboardMarkup:
@@ -234,7 +246,7 @@ def make_keyboard_back_car_settings() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(
                 static_text.back_car_settings,
-                callback_data=manage_data.BACK_CAR_SETTING_BUTTON
+                callback_data=manage_data.MY_RIDES_TIME_CONFIRM
             )
         ]
     ]

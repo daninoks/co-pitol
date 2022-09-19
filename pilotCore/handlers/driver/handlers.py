@@ -52,6 +52,7 @@ def delete_missclicked_messages(update: Update, context: CallbackContext) -> Non
 #     return conversation.MAIN_TREE
 
 
+
 def driver_main(update: Update, context: CallbackContext) -> int:
     """Handle DRIVER_BUTTON Query command"""
     """Filter New/Registred/Banned Users"""
@@ -205,13 +206,13 @@ def my_rides_edit(update: Update, context: CallbackContext) -> int:
     # if call_back ==
 
 
-    context.bot.edit_message_text(
-        text=text,
-        chat_id=update.callback_query.message.chat.id,
-        message_id=update.callback_query.message.message_id,
-        reply_markup=keyboards.make_keyboard_my_rides(),
-        parse_mode=ParseMode.HTML
-    )
+    # context.bot.edit_message_text(
+    #     text=text,
+    #     chat_id=update.callback_query.message.chat.id,
+    #     message_id=update.callback_query.message.message_id,
+    #     reply_markup=None,
+    #     parse_mode=ParseMode.HTML
+    # )
     return conversation.RIDES_CONV
 
 def my_rides_time(update: Update, context: CallbackContext) -> int:
@@ -233,14 +234,14 @@ def my_rides_time(update: Update, context: CallbackContext) -> int:
         text=text,
         chat_id=update.message.chat.id,
         message_id=du.last_msg_id,
-        reply_markup=keyboards.my_rides_time(),
+        reply_markup=keyboards.make_keyboard_my_rides_time(),
         parse_mode=ParseMode.HTML
     )
     return conversation.RIDES_CONV
 
 def set_direction(update: Update, context: CallbackContext) -> int:
     """Set DIRECTION_BUTTON Query"""
-    d, _ = Driver.get_or_create_user(update, context)
+    d, _ = DriverRides.get_or_create_user(update, context)
     call_back = update.callback_query.data
 
     if d.direction is None or d.direction == '':
@@ -250,11 +251,11 @@ def set_direction(update: Update, context: CallbackContext) -> int:
 
     if call_back in manage_data.CITIES_CALLBACK:
         field_data = manage_data.CITIES_CALLBACK[call_back]
-        d = Driver.add_direction(field_data, update, context)
+        d = DriverRides.add_direction(field_data, update, context)
         text = d.direction
     else:
         if call_back == manage_data.DELETE_CITY_BUTTON:
-            d = Driver.remove_last_direction(update, context)
+            d = DriverRides.remove_last_direction(update, context)
             text = d.direction
 
     context.bot.edit_message_text(

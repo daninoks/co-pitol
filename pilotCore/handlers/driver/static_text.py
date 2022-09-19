@@ -65,7 +65,7 @@ driver_preference_text: Dict[str, str] = {
 #         '{hours} \n', \
 #         'Format: HH:MM-HH:MM   ```'
 
-# set_direction_empty = 'Set Your path here'
+set_direction_empty = 'Set Your path here'
 
 ###### My Rides:
 my_rides_bt = u'\U0001F5FA' + ' MY RIDES'
@@ -73,6 +73,8 @@ my_rides_new_bt = 'NEW RIDE'
 my_rides_del_bt = 'DELETE'
 my_rides_edit_bt = 'EDIT'
 myrides_empty = 'Your rides is empty for now'
+my_rides_time_confirm = 'CONFIRM'
+back_my_rides_bt = 'Back my rides'
 
 my_rides_text = '``` \n' \
         'Ride id.......{ride_id} \n' \

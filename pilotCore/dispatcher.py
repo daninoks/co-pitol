@@ -193,7 +193,9 @@ def make_conversation_handler():
                 CallbackQueryHandler(
                     driver_handlers.set_direction,
                     pattern=format(
-                        f'^{driver_data.DIRECTION_BUTTON}$'
+                        f'^{driver_data.SEL_DIRECTION_BUTTON}$|'
+                        f'^{driver_data.CITIES_PATTERN}$'
+
                     )
                 ),
                 MessageHandler(
