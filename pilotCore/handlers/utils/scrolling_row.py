@@ -74,8 +74,14 @@ def scroll_layout_keyboard(layout: list, num_callback: str, left_callback: str, 
 
 
 ### !!! ###
-def scroll_layout_model_page(modObj: object, pageAttr: str, pages: int, value: int) -> int:
+def scroll_layout_model_page(
+        modObj: object,
+        pageAttr: str,
+        pages: int,
+        value: int
+) -> int:
     """Keyboard layout model for current page"""
+    print('value' + str(value))
     if value == 0:
         setattr(modObj, pageAttr, 0)
     if value == -1:
@@ -96,7 +102,7 @@ def scroll_layout_model_page(modObj: object, pageAttr: str, pages: int, value: i
                 else getattr(modObj, pageAttr) + 1
             )
         )
-    if re.match('^[+]?\d+', str(value)):
+    if re.match('^\d+', str(value)):
         setattr(modObj, pageAttr, value)
     modObj.save()
     return getattr(modObj, pageAttr)

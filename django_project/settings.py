@@ -38,7 +38,7 @@ if os.environ.get('DJANGO_DEBUG', default=False) in ['True', 'true', '1', True]:
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = ['co-pilot.tech', 'www.co-pilot.tech', '191.101.3.1', 'localhost']
+ALLOWED_HOSTS = ['co-pilot.tech', 'www.co-pilot.tech', '179.61.188.226', 'localhost']
 
 
 # Application definition

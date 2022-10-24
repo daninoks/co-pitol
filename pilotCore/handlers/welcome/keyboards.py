@@ -9,6 +9,12 @@ def make_keyboard_start_command() -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
+                static_text.customer_button,
+                callback_data=manage_data.CUSTOMER_BUTTON
+            )
+        ],
+        [
+            InlineKeyboardButton(
                 static_text.driver_button,
                 callback_data=manage_data.DRIVER_BUTTON
             ),

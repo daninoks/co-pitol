@@ -1,0 +1,7 @@
+
+##### BUTTONS TEXT #####
+
+
+
+
+### MESSAGE TEXT ###

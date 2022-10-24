@@ -66,11 +66,11 @@ def make_keyboard_my_rides(exists: bool, layout: list) -> InlineKeyboardMarkup:
                 static_text.my_rides_del_bt,
                 callback_data=manage_data.MY_RIDES_DEL_BUTTON
             ),
-            # Edit selected ride:
-            InlineKeyboardButton(
-                static_text.my_rides_edit_bt,
-                callback_data=manage_data.MY_RIDES_EDIT_BUTTON
-            ),
+            # # Edit selected ride:
+            # InlineKeyboardButton(
+            #     static_text.my_rides_edit_bt,
+            #     callback_data=manage_data.MY_RIDES_EDIT_BUTTON
+            # ),
         ]
         buttons.append(scroll_row)
         buttons.append(middle_row)
@@ -78,18 +78,16 @@ def make_keyboard_my_rides(exists: bool, layout: list) -> InlineKeyboardMarkup:
     lower_row = [
         # Navigation here:
         [
+            # Back driver main:
+            InlineKeyboardButton(
+                static_text.back_driver_main,
+                callback_data=manage_data.BACK_DRIVER_MAIN_BUTTON
+            ),
             # New ride:
             InlineKeyboardButton(
                 static_text.my_rides_new_bt,
                 callback_data=manage_data.MY_RIDES_NEW_BUTTON
             ),
-        ],
-        [
-            # Back driver main:
-            InlineKeyboardButton(
-                static_text.back_driver_main,
-                callback_data=manage_data.BACK_DRIVER_MAIN_BUTTON
-            )
         ],
     ]
     buttons.extend(lower_row)
@@ -241,12 +239,23 @@ def make_keyboard_go_settings() -> InlineKeyboardMarkup:
 #     return InlineKeyboardMarkup(buttons)
 
 # SOLO BACK BUTTON KEYBOARDS:
+def make_keyboard_back_my_rides() -> InlineKeyboardMarkup:
+    buttons = [
+        [
+            InlineKeyboardButton(
+                static_text.back_my_rides_bt,
+                callback_data=manage_data.BACK_MY_RIDES_BUTTON
+            )
+        ]
+    ]
+    return InlineKeyboardMarkup(buttons)
+
 def make_keyboard_back_car_settings() -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
                 static_text.back_car_settings,
-                callback_data=manage_data.MY_RIDES_TIME_CONFIRM
+                callback_data=manage_data.BACK_CAR_SETTING_BUTTON
             )
         ]
     ]

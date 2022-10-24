@@ -28,13 +28,17 @@ from pilotCore.handlers.welcome import handlers as welcome_handlers
 from pilotCore.handlers.welcome import manage_data as welcome_data
 from pilotCore.handlers.driver import handlers as driver_handlers
 from pilotCore.handlers.driver import manage_data as driver_data
+from pilotCore.handlers.customer import handlers as customer_handlers
+from pilotCore.handlers.customer import manage_data as customer_data
+
+
 from pilotCore.handlers.order import handlers as order_handlers
 from pilotCore.handlers.order import manage_data as order_data
 from pilotCore.handlers.operator import handlers as operator_handlers
 from pilotCore.handlers.operator import manage_data as operator_data
 
 
-TELEGRAM_TOKEN = TELEGRAM_TOKEN
+# TELEGRAM_TOKEN = TELEGRAM_TOKEN
 
 
 def make_conversation_handler():
@@ -52,12 +56,6 @@ def make_conversation_handler():
         ],
         states={
             conversation.MAIN_TREE: [
-                # CallbackQueryHandler(
-                #     welcome_handlers.test,
-                #     pattern=format(
-                #         f'^{welcome_data.TEST_BUTTON}$|'
-                #     )
-                # ),
                 CallbackQueryHandler(
                     welcome_handlers.start_over,
                     pattern=format(
@@ -113,6 +111,13 @@ def make_conversation_handler():
                         f'^{driver_data.CAR_COLOR_BUTTON}$|'
                         f'^{driver_data.CAR_NUMBER_BUTTON}$|'
                         f'^{driver_data.MOBILE_NUMBER_BUTTON}$'
+                    )
+                ),
+                # Customer conerstions:
+                CallbackQueryHandler(
+                    customer_handlers.customer_main_function,
+                    pattern=format(
+                        f'^{customer_data.CUSTOMER_BUTTON}$|'
                     )
                 ),
                 # Catch unnessesary messages from user:
@@ -183,6 +188,16 @@ def make_conversation_handler():
                     )
                 ),
                 CallbackQueryHandler(
+                    driver_handlers.my_rides,
+                    pattern=format(
+                        f'^{driver_data.MY_RIDES_BUTTON}$|'
+                        f'^{driver_data.BACK_MY_RIDES_BUTTON}$|'
+                        f'{driver_data.MR_DYNAMIC_CB_RIDE_PATT}'
+                        f'^{driver_data.MR_PREV_RIDE}$|'
+                        f'^{driver_data.MR_NEXT_RIDE}$'
+                    )
+                ),
+                CallbackQueryHandler(
                     driver_handlers.my_rides_edit,
                     pattern=format(
                         f'^{driver_data.MY_RIDES_NEW_BUTTON}$|'
@@ -194,8 +209,8 @@ def make_conversation_handler():
                     driver_handlers.set_direction,
                     pattern=format(
                         f'^{driver_data.SEL_DIRECTION_BUTTON}$|'
-                        f'^{driver_data.CITIES_PATTERN}$'
-
+                        f'^{driver_data.CITIES_PATTERN}$|'
+                        f'^{driver_data.DELETE_CITY_BUTTON}$'
                     )
                 ),
                 MessageHandler(
@@ -214,6 +229,7 @@ def make_conversation_handler():
             #     )
             # )
         ],
+        per_message=False,
     )
 
     return conv_handler

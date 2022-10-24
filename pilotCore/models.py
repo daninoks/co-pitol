@@ -16,13 +16,15 @@ from pilotCore.handlers.utils import scrolling_row
 from pilotCore.handlers.order import broadcast
 from utils.models import CreateUpdateTracker, nb, CreateTracker, GetOrNoneManager
 
+from pilotCore.handlers.driver import manage_data as driver_data
+
 
 class AdminUserManager(Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_admin=True)
 
 
-
+# Users model:
 class User(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
     username = models.CharField(max_length=32, editable=False, **nb)
@@ -100,13 +102,12 @@ class User(CreateUpdateTracker):
 
 
 
+
+# Driver models:
 class Driver(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
     username = models.CharField(max_length=32, editable=False, **nb)
     mobile_number = models.PositiveBigIntegerField(editable=True, default=0)
-
-    # work_hours = models.CharField(max_length=32, default=None, **nb)
-    # direction = models.TextField(default=None, **nb)
 
     car_model = models.CharField(max_length=32, default=None, **nb)
     car_seats = models.PositiveSmallIntegerField(default=0)
@@ -156,10 +157,8 @@ class Driver(CreateUpdateTracker):
         return d
 
 
-
-
 class DriverRides(CreateUpdateTracker):
-    # primary_key=True,
+    id = models.AutoField(primary_key=True)
     user_id = models.PositiveBigIntegerField(editable=False)  # telegram_id
     username = models.CharField(max_length=32, editable=False, **nb)
 
@@ -184,25 +183,44 @@ class DriverRides(CreateUpdateTracker):
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         """ python-telegram-bot's Update, Context --> User instance """
+        """ create using DrierUtilts class """
         data = extract_user_data_from_update(update)
+
         try:
-            drList = list(cls.objects.filter(user_id=data.get('user_id')).order_by('ride_id').last().values('ride_id'))
-            # max_ride_id = drList[0].get('ride_id') + 1
-            mr_prefix = re.match('_(\d*)', drList[0].get('ride_id'))
-            max_ride_id = re.sub(f'{mr_prefix[1]}', f'{int(mr_prefix[1]) + 1}', drList[0].get('ride_id'))
-        except AttributeError:
+            print('existing RIDE_ID')
+            drList = list(
+                cls.objects.filter(
+                    user_id=data.get('user_id')
+                ).values('ride_id').order_by('ride_id')
+            )
+            if update.callback_query.data == driver_data.MY_RIDES_NEW_BUTTON:
+                print('new RIDE_ID')
+                mr_prefix = re.search('\d*$', drList[-1].get('ride_id'))
+                max_ride_id = re.sub(f'_{mr_prefix[0]}', f'_{int(mr_prefix[0]) + 1}', drList[-1].get('ride_id'))
+            else:
+                max_ride_id = drList[-1].get('ride_id')
+        except (AttributeError, IndexError) as e:
+            print(e)
             max_ride_id = 'ORD_' + str(data.get('user_id')) + '_0'
-        dr, exists = cls.objects.get_or_create(user_id=data.get('user_id'), ride_id=max_ride_id)
-        return dr, exists
+
+        dr, created = cls.objects.get_or_create(user_id=data.get('user_id'), ride_id=max_ride_id)
+        return dr, created
 
     @classmethod
-    def get_user_by_ride_id(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        """ python-telegram-bot's Update, Context --> User instance """
-        data = extract_user_data_from_update(update)
+    def delete_ride(cls, update: Update, context: CallbackContext) -> str:
+        # dr, ex = cls.get_field_by_ride_id(update, context)
         du, _ = DriverUtils.get_or_create_user(update, context)
-        ride_id = du.selected_ride_id
-        dr, exists = cls.objects.get_or_create(user_id=data.get('user_id'), ride_id=ride_id)
-        return dr, exists
+        data = extract_user_data_from_update(update)
+        dr, created = cls.objects.get_or_create(user_id=data.get('user_id'), ride_id=du.selected_ride_id)
+        ride_id = dr.ride_id
+        print(dr)
+        print(created)
+        if created:
+            msg = f'Warning: SOmething went wrong. Field with ID: {ride_id} just created!'
+        else:
+            dr.delete()
+            msg = f'Ride with ID: {ride_id} Deleted!'
+        return msg
 
     @classmethod
     def new_time(cls, update: Update, context: CallbackContext, field_data: str) -> str:
@@ -233,14 +251,6 @@ class DriverRides(CreateUpdateTracker):
         return dr
 
     @classmethod
-    def remove_direction(cls, field_data, update: Update, context: CallbackContext) -> Optional[DriverRides]:
-        dr, _ = cls.get_or_create_user(update, context)
-        deleted_direction = re.sub(f'-> {field_data}', '', dr.direction)
-        dr.direction = deleted_direction
-        dr.save()
-        return dr
-
-    @classmethod
     def remove_last_direction(cls, update: Update, context: CallbackContext) -> Optional[DriverRides]:
         dr, _ = cls.get_or_create_user(update, context)
         deleted_direction = re.sub(' -> ([a-zA-Z]\w+)$', '', dr.direction)
@@ -248,70 +258,26 @@ class DriverRides(CreateUpdateTracker):
         dr.save()
         return dr
 
+    # @classmethod
+    # def remove_direction(cls, field_data, update: Update, context: CallbackContext) -> Optional[DriverRides]:
+    #     dr, _ = cls.get_or_create_user(update, context)
+    #     deleted_direction = re.sub(f'-> {field_data}', '', dr.direction)
+    #     dr.direction = deleted_direction
+    #     dr.save()
+    #     return dr
 
 
 class DriverUtils(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)      # telegram_id
-    mess_deleted = models.PositiveSmallIntegerField(default=0, editable=False)      # number deleted Messages after entry_points to conversation
-    # new_orders_num = models.PositiveSmallIntegerField(default=0, editable=False)
-    # new_orders_page = models.PositiveSmallIntegerField(default=0, editable=False)
-    # my_orders_num = models.PositiveSmallIntegerField(default=0, editable=False)
-    # my_orders_page = models.PositiveSmallIntegerField(default=0, editable=False)
     last_msg_id = models.PositiveBigIntegerField(default=0, editable=False)
     myrides_page = models.PositiveSmallIntegerField(default=0, editable=False)
-    selected_ride_id = models.PositiveIntegerField(default=0, editable=False)
+    selected_ride_id = models.CharField(max_length=32, editable=False)
 
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         data = extract_user_data_from_update(update)
         du, exists = cls.objects.get_or_create(user_id=data["user_id"])
         return du, exists
-
-    @classmethod
-    def get_user_by_username_or_user_id(cls, username_or_user_id: Union[str, int]) -> DriverUtils:
-        """ Search user in DB, return User or None if not found """
-        username = str(username_or_user_id).replace("@", "").strip().lower()
-        if username.isdigit():  # user_id
-            return cls.objects.filter(user_id=int(username)).first()
-        return cls.objects.filter(username__iexact=username).first()
-        # return cls.objects.filter(user_id=int(username_or_user_id)).first()
-
-    # @classmethod
-    # def reset_counter(cls, update: Update, context: CallbackContext) -> None:
-    #     du, _ = cls.get_or_create_user(update, context)
-    #     du.mess_deleted = 0
-    #     du.save()
-    #
-    # @classmethod
-    # def inc_counter(cls, update: Update, context: CallbackContext) -> Optional[DriverUtils]:
-    #     du, _  = cls.get_or_create_user(update, context)
-    #     du.mess_deleted += 1
-    #     du.save()
-    #     return du
-
-    # @classmethod
-    # def set_new_orders_page(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
-    #     du, _ = cls.get_or_create_user(update, context)
-    #     page = scrolling_row.scroll_layout_model_page(du, 'new_orders_page', 'new_orders_num', value)
-    #     return page
-    #
-    # @classmethod
-    # def set_new_orders_num(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
-    #     du, _ = cls.get_or_create_user(update, context)
-    #     page = scrolling_row.scroll_layout_model_pages(du, 'new_orders_page', 'new_orders_num', value)
-    #     return page
-    #
-    # @classmethod
-    # def set_my_orders_page(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
-    #     du, _ = cls.get_or_create_user(update, context)
-    #     page = scrolling_row.scroll_layout_model_page(du, 'my_orders_page', 'my_orders_num', value)
-    #     return page
-    #
-    # @classmethod
-    # def set_my_orders_num(cls, update: Update, context: CallbackContext, value: int) -> Optional[int]:
-    #     du, _ = cls.get_or_create_user(update, context)
-    #     page = scrolling_row.scroll_layout_model_pages(du, 'my_orders_page', 'my_orders_num', value)
-    #     return page
 
     @classmethod
     def set_last_msg_id(cls, update: Update, context: CallbackContext) -> Optional[int]:
@@ -321,14 +287,78 @@ class DriverUtils(CreateUpdateTracker):
         return du.last_msg_id
 
     @classmethod
-    def set_myride_page(cls, update: Update, context: CallbackContext, pages: int, inc_value: int) -> Optional[int]:
-        du, _ = cls.get_or_create_user(update, context)
-        page = scrolling_row.scroll_layout_model_page(du, 'myrides_page', pages, value)
+    def set_myride_page(cls, duObj: object, pages: int, inc_value: int) -> Optional[int]:
+        page = scrolling_row.scroll_layout_model_page(duObj, 'myrides_page', pages, inc_value)
         return page
 
 
 
 
+# Customer models:
+class Customer(CreateUpdateTracker):
+    user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
+    username = models.CharField(max_length=32, editable=False, **nb)
+    mobile_number = models.PositiveBigIntegerField(editable=True, default=0)
+
+    car_model = models.CharField(max_length=32, default=None, **nb)
+    car_seats = models.PositiveSmallIntegerField(default=0)
+    car_color = models.CharField(max_length=32, default=None, **nb)
+    car_number = models.CharField(max_length=32,default=None, **nb)
+
+    DRVR_ACCEPTED = 'ACCEPTED'
+    DRVR_PENDING = 'PENDING'
+    DRVR_BANNED = 'BANNED'
+    DRVR_STATE = [
+        (DRVR_ACCEPTED, 'Accepted'),
+        (DRVR_PENDING, 'Pending'),
+        (DRVR_BANNED, 'Banned')
+    ]
+    registred = models.CharField(
+        max_length=8,
+        choices=DRVR_STATE,
+        default=DRVR_PENDING
+    )
+
+
+
+
+
+class CustomerRides(CreateUpdateTracker):
+    pass
+
+class CustomerUtils(CreateUpdateTracker):
+    user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)      # telegram_id
+    last_msg_id = models.PositiveBigIntegerField(default=0, editable=False)
+    myrides_page = models.PositiveSmallIntegerField(default=0, editable=False)
+    selected_ride_id = models.CharField(max_length=32, editable=False)
+
+    @classmethod
+    def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
+        data = extract_user_data_from_update(update)
+        du, exists = cls.objects.get_or_create(user_id=data["user_id"])
+        return du, exists
+
+    @classmethod
+    def set_last_msg_id(cls, update: Update, context: CallbackContext) -> Optional[int]:
+        du, _ = cls.get_or_create_user(update, context)
+        du.last_msg_id = update.callback_query.message.message_id
+        du.save()
+        return du.last_msg_id
+
+    @classmethod
+    def set_myride_page(cls, duObj: object, pages: int, inc_value: int) -> Optional[int]:
+        page = scrolling_row.scroll_layout_model_page(duObj, 'myrides_page', pages, inc_value)
+        return page
+
+
+
+
+
+
+
+
+
+# Orders models:
 class Order(CreateUpdateTracker):
     order_id = models.PositiveIntegerField(default=0, editable=False)
     real_name = models.CharField(max_length=32, default=None, **nb)

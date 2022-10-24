@@ -17,27 +17,16 @@ from pilotCore.handlers.order import handlers as order_handlers
 from pilotCore.handlers.utils import scrolling_row
 
 
+#tests
+from pilotCore.handlers.utils.info import extract_user_data_from_update
+
+
 # wrong field allert
 # Bot(TELEGRAM_TOKEN).answer_callback_query(
 #     callback_query_id=update.callback_query.id,
 #     text="TTTTTTTTTTTT",
 #     show_alert=True
 # )
-
-
-def delete_missclicked_messages(update: Update, context: CallbackContext) -> None:
-    """Deleting messages from User outside the input conversation"""
-    DriverUtils.inc_counter(update, context)
-
-
-    Bot(TELEGRAM_TOKEN).deleteMessage(
-        chat_id=update.message.chat.id,
-        message_id=update.message.message_id,
-        timeout=None
-    )
-
-
-
 # def request_driver_access(update: Update, context: CallbackContext) -> int:
 #     text = static_text.request_driver_access_text
 #
@@ -52,23 +41,66 @@ def delete_missclicked_messages(update: Update, context: CallbackContext) -> Non
 #     return conversation.MAIN_TREE
 
 
+def delete_missclicked_messages(update: Update, context: CallbackContext) -> None:
+    """Deleting messages from User outside the input conversation"""
+    DriverUtils.inc_counter(update, context)
+
+    Bot(TELEGRAM_TOKEN).deleteMessage(
+        chat_id=update.message.chat.id,
+        message_id=update.message.message_id,
+        timeout=None
+    )
+
+
+
+
+def get_ride_list(update) -> list:
+    """ List of all OPENed driver trips """
+    rides_list = list(
+        DriverRides.objects.filter(
+            user_id=update.callback_query.message.chat.id,
+            status=DriverRides.RIDE_OPEN
+        ).values(
+            'user_id', 'username',
+            'ride_id', 'departure_time', 'direction', 'seats_booked'
+        )
+    )
+    return rides_list
+
+
+
+
 
 def driver_main(update: Update, context: CallbackContext) -> int:
     """Handle DRIVER_BUTTON Query command"""
     """Filter New/Registred/Banned Users"""
     d, created = Driver.get_or_create_user(update, context)
     DriverUtils.set_last_msg_id(update, context)
-
+    # Driver accepted by admin:
     if d.registred == d.DRVR_ACCEPTED:
+
+        my_rides = get_ride_list(update)
+        my_rides_block = ''
+        if my_rides != '':
+            my_rides_block += format('<code>\n\n      RIDES OWERIEW</code>')
+        for item in my_rides:
+            my_rides_block += static_text.my_rides_overiew.format(
+                ride_id = item.get('ride_id'),
+                dep_time = item.get('departure_time'),
+                direction = item.get('direction'),
+                booked_seats = item.get('seats'),
+                car_seats = item.get('car_seats')
+            )
+
         text = static_text.driver_main_text.format(
             model = '-' if d.car_model is None else d.car_model,
             color = '-' if d.car_color is None else d.car_color,
             number = '-' if d.car_number is None else d.car_number,
             tel_number = '-' if d.mobile_number is None else d.mobile_number,
             seats = '-' if d.car_seats is None else d.car_seats,
+            rides_overview = '' if my_rides_block == '' else my_rides_block
         )
 
-        # alert_symbol = u'\U000026A0 '
         new_ord_field = (
             '' if (new_ord_count := len(order_handlers.update_new_order_list(update))) == 0
             else f'[{new_ord_count}]'
@@ -85,7 +117,7 @@ def driver_main(update: Update, context: CallbackContext) -> int:
             reply_markup=keyboards.make_keyboard_driver_main(new_ord_field, my_ord_field),
             parse_mode=ParseMode.HTML
         )
-
+    # Driver banned by admin:
     elif d.registred == d.DRVR_BANNED:
         text = static_text.driver_banned
         context.bot.edit_message_text(
@@ -95,9 +127,8 @@ def driver_main(update: Update, context: CallbackContext) -> int:
             reply_markup=keyboards.make_keyboard_back_main(),
             parse_mode=ParseMode.HTML
         )
-
+    # New user register dialog:
     else:
-        # New user register dialog:
         if created:
             text = static_text.driver_welcome_dialog
             context.bot.edit_message_text(
@@ -120,38 +151,30 @@ def driver_main(update: Update, context: CallbackContext) -> int:
 
 
 
+
 def my_rides(update: Update, context: CallbackContext) -> int:
     """Handle MY_RIDES_BUTTON Query"""
 
     call_back = update.callback_query.data
     d, _ = Driver.get_or_create_user(update, context)
 
+    my_rides = get_ride_list(update)
 
-    my_rides = list(
-        DriverRides.objects.filter(
-            user_id=update.callback_query.message.chat.id,
-            status=DriverRides.RIDE_OPEN
-        ).values(
-            'user_id', 'username',
-            'ride_id', 'departure_time', 'direction', 'seats_booked'
-        )
-    )
-
+    # If Driver have active rides it apply scroll raw:
     if my_rides:
         rides_exists = True
         pages_max = len(my_rides) - 1
+
         du, _ = DriverUtils.get_or_create_user(update, context)
         current_page = du.myrides_page
-
         if call_back == manage_data.MR_NEXT_RIDE:
-            current_page = DriverUtils.set_myride_page(update, context, pages_max, -2)
+            current_page = DriverUtils.set_myride_page(du, pages_max, -2)
         if call_back == manage_data.MR_PREV_RIDE:
-            current_page = DriverUtils.set_myride_page(update, context, pages_max, -1)
+            current_page = DriverUtils.set_myride_page(du, pages_max, -1)
         if call_back in manage_data.MR_DYNAMIC_CB_RIDE:
             print(re.sub(f'{manage_data.MR_CB_PREFIX}:', '', call_back))
             current_page = DriverUtils.set_myride_page(
-                update,
-                context,
+                du,
                 pages_max,
                 int(re.sub(f'{manage_data.MR_CB_PREFIX}:', '', call_back))
             )
@@ -174,7 +197,6 @@ def my_rides(update: Update, context: CallbackContext) -> int:
         pages_layout = None
         text = static_text.myrides_empty
 
-
     context.bot.edit_message_text(
         text=text,
         chat_id=update.callback_query.message.chat.id,
@@ -194,7 +216,9 @@ def my_rides_edit(update: Update, context: CallbackContext) -> int:
     text = 'my rides_edit menu'
     call_back = update.callback_query.data
 
+    # Initiate New ride_id:
     if call_back == manage_data.MY_RIDES_NEW_BUTTON:
+        dr, _ = DriverRides.get_or_create_user(update, context)
         text = 'enter depart time'
         context.bot.edit_message_text(
             text=text,
@@ -203,17 +227,18 @@ def my_rides_edit(update: Update, context: CallbackContext) -> int:
             reply_markup=None,
             parse_mode=ParseMode.HTML
         )
-    # if call_back ==
-
-
-    # context.bot.edit_message_text(
-    #     text=text,
-    #     chat_id=update.callback_query.message.chat.id,
-    #     message_id=update.callback_query.message.message_id,
-    #     reply_markup=None,
-    #     parse_mode=ParseMode.HTML
-    # )
+    # Delete Selected ride:
+    if call_back == manage_data.MY_RIDES_DEL_BUTTON:
+        text = DriverRides.delete_ride(update, context)
+        context.bot.edit_message_text(
+            text=text,
+            chat_id=update.callback_query.message.chat.id,
+            message_id=update.callback_query.message.message_id,
+            reply_markup=keyboards.make_keyboard_back_my_rides(),
+            parse_mode=ParseMode.HTML
+        )
     return conversation.RIDES_CONV
+
 
 def my_rides_time(update: Update, context: CallbackContext) -> int:
 
@@ -239,6 +264,7 @@ def my_rides_time(update: Update, context: CallbackContext) -> int:
     )
     return conversation.RIDES_CONV
 
+
 def set_direction(update: Update, context: CallbackContext) -> int:
     """Set DIRECTION_BUTTON Query"""
     d, _ = DriverRides.get_or_create_user(update, context)
@@ -253,10 +279,13 @@ def set_direction(update: Update, context: CallbackContext) -> int:
         field_data = manage_data.CITIES_CALLBACK[call_back]
         d = DriverRides.add_direction(field_data, update, context)
         text = d.direction
-    else:
-        if call_back == manage_data.DELETE_CITY_BUTTON:
-            d = DriverRides.remove_last_direction(update, context)
-            text = d.direction
+
+    if call_back == manage_data.DELETE_CITY_BUTTON:
+        d = DriverRides.remove_last_direction(update, context)
+        text = d.direction
+
+    if text == '':
+        text = static_text.set_direction_empty
 
     context.bot.edit_message_text(
         text=text,
@@ -334,75 +363,6 @@ def driver_preference(update: Update, context: CallbackContext) -> int:
 
 
 
-### OLD
-# def set_hours(update: Update, context: CallbackContext) -> int:
-#     """Set driver working schedule handler"""
-#     field_data = update.message.text
-#
-#     if re.match('^([0-9][0-9]:[0-9][0-9]-[0-9][0-9]:[0-9][0-9])$', field_data):
-#         updating_field = {
-#             'name': 'work_hours',
-#             'data': field_data
-#         }
-#         d = Driver.update_field(update, context, updating_field)
-#         text = static_text.set_hours_text.format(
-#             hours = getattr(d, updating_field.get('name'))
-#         )
-#         redirection = conversation.MAIN_TREE
-#     else:
-#         text = static_text.set_hours_text.format(
-#             hours = '!WRONG FORMAT!'
-#         )
-#         redirection = conversation.HOURS_CONV
-#
-#     Bot(TELEGRAM_TOKEN).deleteMessage(
-#         chat_id=update.message.chat.id,
-#         message_id=update.message.message_id,
-#         timeout=None
-#     )
-#
-#     du, _ = DriverUtils.get_or_create_user(update, context)
-#
-#     context.bot.edit_message_text(
-#         text=text,
-#         chat_id=update.message.chat.id,
-#         message_id=du.last_msg_id,
-#         reply_markup=keyboards.make_keyboard_back_driver_main(),
-#         parse_mode=ParseMode.MARKDOWN
-#     )
-#     return redirection
-
-### OLD
-# def set_direction(update: Update, context: CallbackContext) -> int:
-#     """Set DIRECTION_BUTTON Query"""
-#     d, _ = Driver.get_or_create_user(update, context)
-#     call_back = update.callback_query.data
-#
-#     if d.direction is None or d.direction == '':
-#         text = static_text.set_direction_empty
-#     else:
-#         text = d.direction
-#
-#     if call_back in manage_data.CITIES_CALLBACK:
-#         field_data = manage_data.CITIES_CALLBACK[call_back]
-#         d = Driver.add_direction(field_data, update, context)
-#         text = d.direction
-#     else:
-#         if call_back == manage_data.DELETE_CITY_BUTTON:
-#             d = Driver.remove_last_direction(update, context)
-#             text = d.direction
-#
-#     context.bot.edit_message_text(
-#         text=text,
-#         chat_id=update.callback_query.message.chat.id,
-#         message_id=update.callback_query.message.message_id,
-#         reply_markup=keyboards.make_keyboard_set_direction(),
-#         parse_mode=ParseMode.HTML
-#     )
-#     return conversation.MAIN_TREE
-
-
-
 
 def bot_actions_set(update: Update, context: CallbackContext, field_name: str) -> None:
     """Repeatable actions for set handlers"""
@@ -410,19 +370,19 @@ def bot_actions_set(update: Update, context: CallbackContext, field_name: str) -
         'name': field_name,
         'data': update.message.text
     }
-
+    # Model updates selected field:
     d = Driver.update_field(update, context, updating_field)
 
     text = static_text.driver_preference_text.get(updating_field.get('name')).format(
         cb_var = updating_field.get('data')
     )
-
+    # Deleting user message:
     Bot(TELEGRAM_TOKEN).deleteMessage(
         chat_id=update.message.chat.id,
         message_id=update.message.message_id,
         timeout=None
     )
-
+    # Get Query message_id to update:
     du, _ = DriverUtils.get_or_create_user(update, context)
 
     context.bot.edit_message_text(

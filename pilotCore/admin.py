@@ -28,6 +28,7 @@ class UserAdmin(admin.ModelAdmin):
     actions = ['broadcast']
 
 
+# Driver models:
 @admin.register(Driver)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
@@ -37,27 +38,29 @@ class DriverAdmin(admin.ModelAdmin):
     ]
     list_filter = ['registred', ]
 
-
-@admin.register(DriverUtils)
-class DriverAdmin(admin.ModelAdmin):
-    list_display = [
-        'user_id', 'mess_deleted',
-        'last_msg_id',
-        'myrides_page', 'selected_ride_id'
-    ]
-
 @admin.register(DriverRides)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'user_id', 'username',
+        'id', 'user_id', 'username',
         'ride_id', 'departure_time', 'direction',
         'seats_booked'
     ]
 
+@admin.register(DriverUtils)
+class DriverAdmin(admin.ModelAdmin):
+    list_display = [
+        'user_id', 'last_msg_id', 'myrides_page', 'selected_ride_id'
+    ]
+
+
+
+
+
+# Order models:
 @admin.register(Order)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'order_id', 'real_name', 'username', 'phone_number',
+        'id', 'order_id', 'real_name', 'username', 'phone_number',
         'departure_time', 'travel_direction', 'seats',
         'comment', 'status', 'pointed'
     ]

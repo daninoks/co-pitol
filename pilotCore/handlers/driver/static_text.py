@@ -17,7 +17,8 @@ car_number = 'Car Number'
 
 # back buttons text:
 back_main = u'\U00002B05' + ' Back'
-back_driver_main = u'\U00002B05' + ' Back driver main'
+back_my_rides_bt = u'\U00002B05' + ' Back my rides'
+back_driver_main = u'\U00002B05' + ' Back'
 back_car_settings = u'\U00002B05' + ' Back car setting'
 
 
@@ -34,8 +35,16 @@ driver_welcome_dialog = 'You can select your car properties to get access faster
 driver_main_text = '<code>      WELCOME DEAR DRIVER</code> \n\n' \
         u'\U0001F6CB <code>Seats.......{seats}</code> \n' \
         u'\U0001F4F1 <code>Tel number..{tel_number}</code>	\n' \
-        u'\U0001F698 <code>Car.........{color} {model} {number}</code>'
-# u'\U0001F4B0 <code>Orders......{my_orders}</code> \n' \
+        u'\U0001F698 <code>Car.........{color} {model} {number}</code>' \
+        u'{rides_overview}'
+        # u'\n<code>    Rides overwview:</code> \n' \
+
+my_rides_overiew = '\n\n' \
+        '<code>   {ride_id}</code> \n' \
+        '<code>Depart time...{dep_time}</code> \n' \
+        '<code>Direction.....{direction}</code> \n' \
+        '<code>Seats left....{booked_seats}/{car_seats}</code>'
+
 
 car_settings_dynamic = '<code>      DRIVER PROPERTIES:</code> \n\n' \
         '<code>Tel number....{mobile}</code> \n' \
@@ -74,7 +83,6 @@ my_rides_del_bt = 'DELETE'
 my_rides_edit_bt = 'EDIT'
 myrides_empty = 'Your rides is empty for now'
 my_rides_time_confirm = 'CONFIRM'
-back_my_rides_bt = 'Back my rides'
 
 my_rides_text = '``` \n' \
         'Ride id.......{ride_id} \n' \
