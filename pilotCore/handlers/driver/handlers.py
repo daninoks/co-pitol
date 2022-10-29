@@ -10,39 +10,18 @@ from telegram.ext import CallbackContext
 from django_project.settings import TELEGRAM_TOKEN
 
 from pilotCore import conversation
-# from pilotCore import models
 from pilotCore.handlers.driver import keyboards, manage_data, static_text
 from pilotCore.models import User, Driver, DriverRides, DriverUtils
-from pilotCore.handlers.order import handlers as order_handlers
 from pilotCore.handlers.utils import scrolling_row
 
+from pilotCore.handlers.order import handlers as order_handlers
+from pilotCore.handlers.goto import keyboards as goto_keyboards
 
-#tests
-from pilotCore.handlers.utils.info import extract_user_data_from_update
 
-
-# wrong field allert
-# Bot(TELEGRAM_TOKEN).answer_callback_query(
-#     callback_query_id=update.callback_query.id,
-#     text="TTTTTTTTTTTT",
-#     show_alert=True
-# )
-# def request_driver_access(update: Update, context: CallbackContext) -> int:
-#     text = static_text.request_driver_access_text
-#
-#     context.bot.edit_message_text(
-#         text=text,
-#         chat_id=update.callback_query.message.chat.id,
-#         message_id=update.callback_query.message.message_id,
-#         reply_markup=keyboards.make_keyboard_driver_main(new_ord_field, my_ord_field),
-#         parse_mode=ParseMode.HTML
-#     )
-#
-#     return conversation.MAIN_TREE
 
 
 def delete_missclicked_messages(update: Update, context: CallbackContext) -> None:
-    """Deleting messages from User outside the input conversation"""
+    """ Deleting messages from User outside the input conversation """
     DriverUtils.inc_counter(update, context)
 
     Bot(TELEGRAM_TOKEN).deleteMessage(
@@ -72,13 +51,15 @@ def get_ride_list(update) -> list:
 
 
 def driver_main(update: Update, context: CallbackContext) -> int:
-    """Handle DRIVER_BUTTON Query command"""
-    """Filter New/Registred/Banned Users"""
+    """
+    Handle DRIVER_BUTTON Query command
+    Filter New/Registred/Banned Users
+    """
     d, created = Driver.get_or_create_user(update, context)
     DriverUtils.set_last_msg_id(update, context)
+
     # Driver accepted by admin:
     if d.registred == d.DRVR_ACCEPTED:
-
         my_rides = get_ride_list(update)
         my_rides_block = ''
         if my_rides != '':
@@ -109,51 +90,35 @@ def driver_main(update: Update, context: CallbackContext) -> int:
             '' if (my_ord_couter := len(order_handlers.update_my_order_list(update))) == 0
             else f'[{my_ord_couter}]'
         )
+        keyboard = keyboards.make_keyboard_driver_main(new_ord_field, my_ord_field)
 
-        context.bot.edit_message_text(
-            text=text,
-            chat_id=update.callback_query.message.chat.id,
-            message_id=update.callback_query.message.message_id,
-            reply_markup=keyboards.make_keyboard_driver_main(new_ord_field, my_ord_field),
-            parse_mode=ParseMode.HTML
-        )
     # Driver banned by admin:
     elif d.registred == d.DRVR_BANNED:
         text = static_text.driver_banned
-        context.bot.edit_message_text(
-            text=text,
-            chat_id=update.callback_query.message.chat.id,
-            message_id=update.callback_query.message.message_id,
-            reply_markup=keyboards.make_keyboard_back_main(),
-            parse_mode=ParseMode.HTML
-        )
+        keyboard = goto_keyboards.make_keyboard_go_start_over()
+
     # New user register dialog:
     else:
         if created:
             text = static_text.driver_welcome_dialog
-            context.bot.edit_message_text(
-                text=text,
-                chat_id=update.callback_query.message.chat.id,
-                message_id=update.callback_query.message.message_id,
-                reply_markup=keyboards.make_keyboard_go_settings(),
-                parse_mode=ParseMode.HTML
-            )
         else:
             text = static_text.driver_waiting_approval
-            context.bot.edit_message_text(
-                text=text,
-                chat_id=update.callback_query.message.chat.id,
-                message_id=update.callback_query.message.message_id,
-                reply_markup=keyboards.make_keyboard_go_settings(),
-                parse_mode=ParseMode.HTML
-            )
+        keyboard = goto_keyboards.make_keyboard_go_car_settings()
+
+    context.bot.edit_message_text(
+        text=text,
+        chat_id=update.callback_query.message.chat.id,
+        message_id=update.callback_query.message.message_id,
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
     return conversation.MAIN_TREE
 
 
 
 
 def my_rides(update: Update, context: CallbackContext) -> int:
-    """Handle MY_RIDES_BUTTON Query"""
+    """ Handle MY_RIDES_BUTTON Query """
 
     call_back = update.callback_query.data
     d, _ = Driver.get_or_create_user(update, context)
@@ -208,7 +173,8 @@ def my_rides(update: Update, context: CallbackContext) -> int:
 
 
 def my_rides_edit(update: Update, context: CallbackContext) -> int:
-    """Handle Query:
+    """
+    Handle Query:
         MY_RIDES_NEW_BUTTON
         MY_RIDES_EDIT_BUTTON
         MY_RIDES_DEL_BUTTON
@@ -220,41 +186,36 @@ def my_rides_edit(update: Update, context: CallbackContext) -> int:
     if call_back == manage_data.MY_RIDES_NEW_BUTTON:
         dr, _ = DriverRides.get_or_create_user(update, context)
         text = 'enter depart time'
-        context.bot.edit_message_text(
-            text=text,
-            chat_id=update.callback_query.message.chat.id,
-            message_id=update.callback_query.message.message_id,
-            reply_markup=None,
-            parse_mode=ParseMode.HTML
-        )
+        keyboard = None
     # Delete Selected ride:
     if call_back == manage_data.MY_RIDES_DEL_BUTTON:
         text = DriverRides.delete_ride(update, context)
-        context.bot.edit_message_text(
-            text=text,
-            chat_id=update.callback_query.message.chat.id,
-            message_id=update.callback_query.message.message_id,
-            reply_markup=keyboards.make_keyboard_back_my_rides(),
-            parse_mode=ParseMode.HTML
-        )
+        keyboard = goto_keyboards.make_keyboard_go_my_rides()
+
+    context.bot.edit_message_text(
+        text=text,
+        chat_id=update.callback_query.message.chat.id,
+        message_id=update.callback_query.message.message_id,
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML
+    )
     return conversation.RIDES_CONV
 
 
 def my_rides_time(update: Update, context: CallbackContext) -> int:
-
+    """ Set departure time """
     field_data = update.message.text
     dr_time = DriverRides.new_time(update, context, field_data)
-
     text = f'Selected time: {dr_time}'
-
+    # Deleting user message:
     Bot(TELEGRAM_TOKEN).deleteMessage(
         chat_id=update.message.chat.id,
         message_id=update.message.message_id,
         timeout=None
     )
-
+    # Get Query message_id to update:
     du, _ = DriverUtils.get_or_create_user(update, context)
-
+    # Edit previous message:
     context.bot.edit_message_text(
         text=text,
         chat_id=update.message.chat.id,
@@ -334,6 +295,7 @@ def driver_preference(update: Update, context: CallbackContext) -> int:
     call_back = update.callback_query.data
     call_back_sub = re.sub('_BTTN', '', update.callback_query.data).lower()
 
+    keyboard = goto_keyboards.make_keyboard_go_car_settings()
     if call_back in manage_data.REPLY_HANDLESR:
         if getattr(d, call_back_sub) is None:
             text = static_text.driver_preference_none[call_back_sub]
@@ -342,11 +304,10 @@ def driver_preference(update: Update, context: CallbackContext) -> int:
                 cb_var = getattr(d, call_back_sub)
             )
         redirection = manage_data.CONVERSATION_REDIRECT[call_back]
-
-    if redirection == conversation.HOURS_CONV:
-        keyboard = keyboards.make_keyboard_back_driver_main()
+        if redirection == conversation.HOURS_CONV:
+            keyboard = goto_keyboards.make_keyboard_go_driver_main()
     else:
-        keyboard = keyboards.make_keyboard_back_car_settings()
+        redirection = manage_data.MAIN_TREE
 
     context.bot.edit_message_text(
         text=text,
@@ -355,11 +316,8 @@ def driver_preference(update: Update, context: CallbackContext) -> int:
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML
     )
+    return redirection
 
-    if redirection:
-        return redirection
-    else:
-        return manage_data.MAIN_TREE
 
 
 
@@ -389,7 +347,7 @@ def bot_actions_set(update: Update, context: CallbackContext, field_name: str) -
         text=text,
         chat_id=update.message.chat.id,
         message_id=du.last_msg_id,
-        reply_markup=keyboards.make_keyboard_back_car_settings(),
+        reply_markup=goto_keyboards.make_keyboard_go_car_settings(),
         parse_mode=ParseMode.HTML
     )
     return conversation.MAIN_TREE

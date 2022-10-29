@@ -15,12 +15,6 @@ car_seats = 'Car Seats Number'
 car_color = 'Car Color'
 car_number = 'Car Number'
 
-# back buttons text:
-back_main = u'\U00002B05' + ' Back'
-back_my_rides_bt = u'\U00002B05' + ' Back my rides'
-back_driver_main = u'\U00002B05' + ' Back'
-back_car_settings = u'\U00002B05' + ' Back car setting'
-
 
 ### MESSAGE TEXT ###
 request_driver_access_text = 'REQUEST DRIVER ACCESS TEXT'

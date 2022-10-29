@@ -37,6 +37,7 @@ from pilotCore.handlers.order import manage_data as order_data
 from pilotCore.handlers.operator import handlers as operator_handlers
 from pilotCore.handlers.operator import manage_data as operator_data
 
+from pilotCore.handlers.goto import manage_data as goto_data
 
 # TELEGRAM_TOKEN = TELEGRAM_TOKEN
 
@@ -59,14 +60,14 @@ def make_conversation_handler():
                 CallbackQueryHandler(
                     welcome_handlers.start_over,
                     pattern=format(
-                        f'^{driver_data.BACK_MAIN_BUTTON}$'
+                        f'^{goto_data.GO_START_OVER_CB}$'
                     )
                 ),
                 CallbackQueryHandler(
                     driver_handlers.driver_main,
                     pattern=format(
                         f'^{welcome_data.DRIVER_BUTTON}$|'
-                        f'^{driver_data.BACK_DRIVER_MAIN_BUTTON}$'
+                        f'^{goto_data.GO_DRIVER_MAIN_CB}$'
                     )
                 ),
                 CallbackQueryHandler(
@@ -100,7 +101,7 @@ def make_conversation_handler():
                     driver_handlers.car_settings,
                     pattern=format(
                         f'^{driver_data.CAR_SETTINGS_BUTTON}$|'
-                        f'^{driver_data.BACK_CAR_SETTING_BUTTON}$'
+                        f'^{goto_data.GO_CAR_SETTING_CB}$'
                     )
                 ),
                 CallbackQueryHandler(
@@ -113,13 +114,23 @@ def make_conversation_handler():
                         f'^{driver_data.MOBILE_NUMBER_BUTTON}$'
                     )
                 ),
-                # Customer conerstions:
+                # Customer converstions:
                 CallbackQueryHandler(
-                    customer_handlers.customer_main_function,
+                    customer_handlers.customer_main,
                     pattern=format(
-                        f'^{customer_data.CUSTOMER_BUTTON}$|'
+                        f'^{welcome_data.CUSTOMER_BUTTON}$'
                     )
                 ),
+                CallbackQueryHandler(
+                    customer_handlers.customer_properties,
+                    pattern=format(
+                        f'^{customer_data.CUSTOMER_PROPERTIES_CB}$|'
+                        f'^{goto_data.GO_CUSTOMER_PROPERTIES_CB}$|'
+                        f'^{customer_data.CUSTOMER_SET_NAME_CB}$|'
+                        f'^{customer_data.CUSTOMER_SET_NUMBER_CB}$'
+                    )
+                ),
+
                 # Catch unnessesary messages from user:
                 MessageHandler(
                     Filters.regex('^(?!\/).*$'), driver_handlers.delete_missclicked_messages
@@ -129,7 +140,7 @@ def make_conversation_handler():
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
                     pattern=format(
-                        f'^{driver_data.BACK_CAR_SETTING_BUTTON}$'
+                        f'^{goto_data.GO_CAR_SETTING_CB}$'
                     )
                 ),
                 MessageHandler(
@@ -140,7 +151,7 @@ def make_conversation_handler():
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
                     pattern=format(
-                        f'^{driver_data.BACK_CAR_SETTING_BUTTON}$'
+                        f'^{goto_data.GO_CAR_SETTING_CB}$'
                     )
                 ),
                 MessageHandler(
@@ -151,7 +162,7 @@ def make_conversation_handler():
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
                     pattern=format(
-                        f'^{driver_data.BACK_CAR_SETTING_BUTTON}$'
+                        f'^{goto_data.GO_CAR_SETTING_CB}$'
                     )
                 ),
                 MessageHandler(
@@ -162,7 +173,7 @@ def make_conversation_handler():
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
                     pattern=format(
-                        f'^{driver_data.BACK_CAR_SETTING_BUTTON}$'
+                        f'^{goto_data.GO_CAR_SETTING_CB}$'
                     )
                 ),
                 MessageHandler(
@@ -173,7 +184,7 @@ def make_conversation_handler():
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
                     pattern=format(
-                        f'^{driver_data.BACK_CAR_SETTING_BUTTON}$'
+                        f'^{goto_data.GO_CAR_SETTING_CB}$'
                     )
                 ),
                 MessageHandler(
@@ -184,7 +195,7 @@ def make_conversation_handler():
                 CallbackQueryHandler(
                     driver_handlers.driver_main,
                     pattern=format(
-                        f'^{driver_data.BACK_DRIVER_MAIN_BUTTON}$'
+                        f'^{goto_data.GO_DRIVER_MAIN_CB}$'
                     )
                 ),
                 CallbackQueryHandler(

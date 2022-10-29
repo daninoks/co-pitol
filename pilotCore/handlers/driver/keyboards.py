@@ -105,29 +105,6 @@ def make_keyboard_my_rides_time() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
-# def make_keyboard_new_ride_location() -> InlineKeyboardMarkup:
-#     buttons = [
-#         # Navigation here:
-#         [
-#             # Edit selected ride:
-#             InlineKeyboardButton(
-#                 static_text.mobile_number,
-#                 callback_data=manage_data.MOBILE_NUMBER_BUTTON
-#             )
-#         ],
-#         [
-#             # Back drier main:
-#             InlineKeyboardButton(
-#                 static_text.back_driver_main,
-#                 callback_data=manage_data.BACK_DRIVER_MAIN_BUTTON
-#             )
-#         ],
-#     ]
-#     return InlineKeyboardMarkup(buttons)
-
-
-
-
 def make_keyboard_car_settings() -> InlineKeyboardMarkup:
     buttons = [
         [
@@ -237,48 +214,3 @@ def make_keyboard_go_settings() -> InlineKeyboardMarkup:
 #         ]
 #     ]
 #     return InlineKeyboardMarkup(buttons)
-
-# SOLO BACK BUTTON KEYBOARDS:
-def make_keyboard_back_my_rides() -> InlineKeyboardMarkup:
-    buttons = [
-        [
-            InlineKeyboardButton(
-                static_text.back_my_rides_bt,
-                callback_data=manage_data.BACK_MY_RIDES_BUTTON
-            )
-        ]
-    ]
-    return InlineKeyboardMarkup(buttons)
-
-def make_keyboard_back_car_settings() -> InlineKeyboardMarkup:
-    buttons = [
-        [
-            InlineKeyboardButton(
-                static_text.back_car_settings,
-                callback_data=manage_data.BACK_CAR_SETTING_BUTTON
-            )
-        ]
-    ]
-    return InlineKeyboardMarkup(buttons)
-
-def make_keyboard_back_driver_main() -> InlineKeyboardMarkup:
-    buttons = [
-        [
-            InlineKeyboardButton(
-                static_text.back_driver_main,
-                callback_data=manage_data.BACK_DRIVER_MAIN_BUTTON
-            )
-        ]
-    ]
-    return InlineKeyboardMarkup(buttons)
-
-def make_keyboard_back_main() -> InlineKeyboardMarkup:
-    buttons = [
-        [
-            InlineKeyboardButton(
-                static_text.back_main,
-                callback_data=manage_data.BACK_MAIN_BUTTON
-            )
-        ],
-    ]
-    return InlineKeyboardMarkup(buttons)

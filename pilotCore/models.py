@@ -107,10 +107,10 @@ class User(CreateUpdateTracker):
 class Driver(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
     username = models.CharField(max_length=32, editable=False, **nb)
-    mobile_number = models.PositiveBigIntegerField(editable=True, default=0)
+    mobile_number = models.PositiveBigIntegerField(default=None, editable=True)
 
     car_model = models.CharField(max_length=32, default=None, **nb)
-    car_seats = models.PositiveSmallIntegerField(default=0)
+    car_seats = models.PositiveSmallIntegerField(default=None, **nb)
     car_color = models.CharField(max_length=32, default=None, **nb)
     car_number = models.CharField(max_length=32,default=None, **nb)
 
@@ -132,8 +132,8 @@ class Driver(CreateUpdateTracker):
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         """ python-telegram-bot's Update, Context --> User instance """
         data = extract_user_data_from_update(update)
-        d, exists = cls.objects.get_or_create(user_id=data.get('user_id'))
-        return d, exists
+        d, created = cls.objects.get_or_create(user_id=data.get('user_id'))
+        return d, created
 
     @classmethod
     def get_user(cls, update: Update, context: CallbackContext) -> User:
@@ -271,13 +271,13 @@ class DriverUtils(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)      # telegram_id
     last_msg_id = models.PositiveBigIntegerField(default=0, editable=False)
     myrides_page = models.PositiveSmallIntegerField(default=0, editable=False)
-    selected_ride_id = models.CharField(max_length=32, editable=False)
+    selected_ride_id = models.CharField(max_length=32, default=None, editable=False)
 
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         data = extract_user_data_from_update(update)
-        du, exists = cls.objects.get_or_create(user_id=data["user_id"])
-        return du, exists
+        du, created = cls.objects.get_or_create(user_id=data["user_id"])
+        return du, created
 
     @classmethod
     def set_last_msg_id(cls, update: Update, context: CallbackContext) -> Optional[int]:
@@ -297,34 +297,68 @@ class DriverUtils(CreateUpdateTracker):
 # Customer models:
 class Customer(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
-    username = models.CharField(max_length=32, editable=False, **nb)
-    mobile_number = models.PositiveBigIntegerField(editable=True, default=0)
+    username = models.CharField(default=None, max_length=32, editable=False, **nb)
+    real_name= models.CharField(default=None, max_length=32, editable=False, **nb)
+    mobile_number = models.BigIntegerField(default=0, editable=True)
 
-    car_model = models.CharField(max_length=32, default=None, **nb)
-    car_seats = models.PositiveSmallIntegerField(default=0)
-    car_color = models.CharField(max_length=32, default=None, **nb)
-    car_number = models.CharField(max_length=32,default=None, **nb)
-
-    DRVR_ACCEPTED = 'ACCEPTED'
-    DRVR_PENDING = 'PENDING'
-    DRVR_BANNED = 'BANNED'
-    DRVR_STATE = [
-        (DRVR_ACCEPTED, 'Accepted'),
-        (DRVR_PENDING, 'Pending'),
-        (DRVR_BANNED, 'Banned')
+    CSTMR_ACCEPTED = 'ACCEPTED'
+    CSTMR_PENDING = 'PENDING'
+    CSTMR_BANNED = 'BANNED'
+    CSTMR_STATE = [
+        (CSTMR_ACCEPTED, 'Accepted'),
+        (CSTMR_PENDING, 'Pending'),
+        (CSTMR_BANNED, 'Banned')
     ]
     registred = models.CharField(
         max_length=8,
-        choices=DRVR_STATE,
-        default=DRVR_PENDING
+        choices=CSTMR_STATE,
+        default=CSTMR_PENDING
     )
 
+    @classmethod
+    def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
+        data = extract_user_data_from_update(update)
+        c, created = cls.objects.get_or_create(user_id=data["user_id"])
+        return c, created
 
+    @classmethod
+    def update_field(cls, update: Update, context: CallbackContext, field: dict) -> Optional[Driver]:
+        c, _ = cls.get_or_create_user(update, context)
+        setattr(c, field.get('name'), field.get('data'))
+        c.save()
+        return c
 
 
 
 class CustomerRides(CreateUpdateTracker):
-    pass
+    id = models.AutoField(primary_key=True)
+    user_id = models.PositiveBigIntegerField(editable=False)  # telegram_id
+    username = models.CharField(max_length=32, editable=False, **nb)
+
+    ride_from = models.TextField(default=None, **nb)
+    ride_to = models.TextField(default=None, **nb)
+
+    sel_ride_id = models.CharField(default=None, max_length=32, editable=False)
+    seats_booked = models.PositiveSmallIntegerField(default=1, editable=False)
+
+    CRIDE_OPEN = 'OPEN'
+    CRIDE_CLOSED = 'CLOSED'
+    CRIDE_STATE = [
+        (CRIDE_OPEN, 'Open'),
+        (CRIDE_CLOSED, 'Closed')
+    ]
+    status = models.CharField(
+        max_length=6,
+        choices=CRIDE_STATE,
+        default=CRIDE_OPEN
+    )
+
+    @classmethod
+    def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
+        data = extract_user_data_from_update(update)
+        du, created = cls.objects.get_or_create(user_id=data["user_id"])
+        return du, created
+
 
 class CustomerUtils(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)      # telegram_id
@@ -335,8 +369,8 @@ class CustomerUtils(CreateUpdateTracker):
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         data = extract_user_data_from_update(update)
-        du, exists = cls.objects.get_or_create(user_id=data["user_id"])
-        return du, exists
+        du, created = cls.objects.get_or_create(user_id=data["user_id"])
+        return du, created
 
     @classmethod
     def set_last_msg_id(cls, update: Update, context: CallbackContext) -> Optional[int]:
