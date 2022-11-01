@@ -1,3 +1,4 @@
+from typing import Dict
 
 # Empty fields:
 customer_empty_fields = 'Please fill this field'
@@ -25,11 +26,11 @@ customer_properties_tx = 'Name -- {name} \n' \
 customer_set_name_bt = 'set name'
 customer_set_number_bt = 'set nubmer'
 
-customer_properties_empty_dt: Dict[str, str] ={
-        'real_name': 'Please enter Your real name'
+customer_properties_empty_dt: Dict[str, str] = {
+        'real_name': 'Please enter Your real name',
         'mobile_number': 'Please enter Your telephone number'
 }
 customer_properties_set_dt: Dict[str, str] = {
-        'real_name': 'Please enter Your real name: \n Current name: {cb_var}'
-        'mobile_number': 'Please enter Your telephone number: \n Current number: {cb_var}'
+        'real_name': 'Current name: {cb_var} \n To change it send me new name.',
+        'mobile_number': 'Current number: {cb_var} \n To change it send me new number.'
 }

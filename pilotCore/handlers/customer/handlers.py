@@ -1,6 +1,10 @@
 import time
+import re
 
-from telegram import ParseMode, Update, ForceReply, ReplyKeyboardRemove
+from telegram import (
+    ParseMode, Update, ForceReply, ReplyKeyboardRemove,
+    Bot
+)
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 
@@ -13,7 +17,7 @@ from pilotCore.handlers.customer import keyboards as customer_keyboards
 from pilotCore.handlers.customer import manage_data as customer_data
 from pilotCore.handlers.customer import static_text as customer_text
 
-from pilotCore.handlers.goro import keyboards as goto_keyboards
+from pilotCore.handlers.goto import keyboards as goto_keyboards
 
 
 def customer_main(update: Update, context: CallbackContext) -> int:
@@ -77,7 +81,7 @@ def customer_properties(update: Update, context: CallbackContext) -> int:
             tel = cef if c.mobile_number is None else c.mobile_number
         )
         redirect_keyboard = customer_keyboards.make_keyboard_customer_properties()
-        redirect_conv = converstion.MAIN_TREE
+        redirect_conv = conversation.MAIN_TREE
 
     context.bot.edit_message_text(
         text=text,
@@ -87,7 +91,6 @@ def customer_properties(update: Update, context: CallbackContext) -> int:
         parse_mode=ParseMode.HTML
     )
     return redirect_conv
-
 
 
 
@@ -115,7 +118,7 @@ def customer_actions_set(update: Update, context: CallbackContext, field_name: s
     context.bot.edit_message_text(
         text=text,
         chat_id=update.message.chat.id,
-        message_id=du.last_msg_id,
+        message_id=cu.last_msg_id,
         reply_markup=goto_keyboards.make_keyboard_go_customer_propeties(),
         parse_mode=ParseMode.HTML
     )
@@ -128,6 +131,17 @@ def set_customer_name(update: Update, context: CallbackContext) -> int:
 def set_customer_number(update: Update, context: CallbackContext) -> int:
     """Set car model handler"""
     customer_actions_set(update, context, 'mobile_number')
+
+
+
+
+def customer_list_routes(update: Update, context: CallbackContext) -> int:
+    pass
+
+
+
+
+
 
 
 

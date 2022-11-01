@@ -118,7 +118,8 @@ def make_conversation_handler():
                 CallbackQueryHandler(
                     customer_handlers.customer_main,
                     pattern=format(
-                        f'^{welcome_data.CUSTOMER_BUTTON}$'
+                        f'^{welcome_data.CUSTOMER_BUTTON}$|'
+                        f'^{goto_data.GO_CUSTOMER_MAIN_CB}$'
                     )
                 ),
                 CallbackQueryHandler(
@@ -136,6 +137,7 @@ def make_conversation_handler():
                     Filters.regex('^(?!\/).*$'), driver_handlers.delete_missclicked_messages
                 ),
             ],
+            # Driver set model:
             conversation.MODEL_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
@@ -147,6 +149,7 @@ def make_conversation_handler():
                     Filters.regex('^(?!\/).*$'), driver_handlers.set_model
                 ),
             ],
+            # Driver set seats:
             conversation.SEATS_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
@@ -158,6 +161,7 @@ def make_conversation_handler():
                     Filters.regex('^(?!\/).*$'), driver_handlers.set_seats
                 ),
             ],
+            # Driver set color:
             conversation.COLOR_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
@@ -169,6 +173,7 @@ def make_conversation_handler():
                     Filters.regex('^(?!\/).*$'), driver_handlers.set_color
                 ),
             ],
+            # Driver set cra number:
             conversation.NUMBER_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
@@ -180,6 +185,7 @@ def make_conversation_handler():
                     Filters.regex('^(?!\/).*$'), driver_handlers.set_number
                 ),
             ],
+            # Driver set mobile number:
             conversation.MOBILE_NUMBER_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
@@ -191,6 +197,7 @@ def make_conversation_handler():
                     Filters.regex('^(?!\/).*$'), driver_handlers.set_mobile_number
                 ),
             ],
+            # Driver directions number:
             conversation.RIDES_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.driver_main,
@@ -202,7 +209,6 @@ def make_conversation_handler():
                     driver_handlers.my_rides,
                     pattern=format(
                         f'^{driver_data.MY_RIDES_BUTTON}$|'
-                        f'^{driver_data.BACK_MY_RIDES_BUTTON}$|'
                         f'{driver_data.MR_DYNAMIC_CB_RIDE_PATT}'
                         f'^{driver_data.MR_PREV_RIDE}$|'
                         f'^{driver_data.MR_NEXT_RIDE}$'
@@ -226,6 +232,30 @@ def make_conversation_handler():
                 ),
                 MessageHandler(
                     Filters.regex('^(?!\/).*$'), driver_handlers.my_rides_time
+                ),
+            ],
+            # Customer set real name:
+            conversation.CUSTOMER_SET_NAME_CONV: [
+                CallbackQueryHandler(
+                    customer_handlers.customer_properties,
+                    pattern=format(
+                        f'^{goto_data.GO_CUSTOMER_PROPERTIES_CB}$'
+                    )
+                ),
+                MessageHandler(
+                    Filters.regex('^(?!\/).*$'), customer_handlers.set_customer_name
+                ),
+            ],
+            # Customer set mobile number:
+            conversation.CUSTOMER_SET_NUMBER_CONV: [
+                CallbackQueryHandler(
+                    customer_handlers.customer_properties,
+                    pattern=format(
+                        f'^{goto_data.GO_CUSTOMER_PROPERTIES_CB}$'
+                    )
+                ),
+                MessageHandler(
+                    Filters.regex('^(?!\/).*$'), customer_handlers.set_customer_number
                 ),
             ],
         },
