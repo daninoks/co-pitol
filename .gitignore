@@ -1,0 +1,9 @@
+# /home/django_project/.gitignore
+#
+#
+.env
+.ftpconfig
+**/__pycache__/**
+**/migrations/**
+**/static/**
+**/venvdjango/**
