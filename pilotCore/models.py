@@ -107,7 +107,7 @@ class User(CreateUpdateTracker):
 class Driver(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
     username = models.CharField(max_length=32, editable=False, **nb)
-    mobile_number = models.PositiveBigIntegerField(default=None, editable=True)
+    mobile_number = models.PositiveBigIntegerField(default=0, editable=True)
 
     car_model = models.CharField(max_length=32, default=None, **nb)
     car_seats = models.PositiveSmallIntegerField(default=None, **nb)
@@ -271,7 +271,7 @@ class DriverUtils(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)      # telegram_id
     last_msg_id = models.PositiveBigIntegerField(default=0, editable=False)
     myrides_page = models.PositiveSmallIntegerField(default=0, editable=False)
-    selected_ride_id = models.CharField(max_length=32, default=None, editable=False)
+    selected_ride_id = models.CharField(max_length=32, editable=False)
 
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:

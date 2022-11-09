@@ -173,7 +173,7 @@ def make_conversation_handler():
                     Filters.regex('^(?!\/).*$'), driver_handlers.set_color
                 ),
             ],
-            # Driver set cra number:
+            # Driver set car number:
             conversation.NUMBER_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
@@ -211,7 +211,9 @@ def make_conversation_handler():
                         f'^{driver_data.MY_RIDES_BUTTON}$|'
                         f'{driver_data.MR_DYNAMIC_CB_RIDE_PATT}'
                         f'^{driver_data.MR_PREV_RIDE}$|'
-                        f'^{driver_data.MR_NEXT_RIDE}$'
+                        f'^{driver_data.MR_NEXT_RIDE}$|'
+                        f'^{goto_data.GO_MY_RIDES_CB}$'
+                        
                     )
                 ),
                 CallbackQueryHandler(
