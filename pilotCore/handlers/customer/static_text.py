@@ -17,7 +17,11 @@ set_route_alert_bt = 'set route alert'
 customer_properties_bt = 'customer properties'
 
 
-# Available routes page:
+# Customer list routes page:
+routes_select_bt = 'Select'
+
+
+
 
 # Customer properties page:
 customer_properties_tx = 'Name -- {name} \n' \
@@ -34,3 +38,14 @@ customer_properties_set_dt: Dict[str, str] = {
         'real_name': 'Current name: {cb_var} \n To change it send me new name.',
         'mobile_number': 'Current number: {cb_var} \n To change it send me new number.'
 }
+
+
+
+
+# Select seats:
+customer_select_seats_tx = '``` \n' \
+        'Ride id.......{ride_id} \n' \
+        'Depart time...{dep_time} \n' \
+        'Direction.....{direction} \n' \
+        'Seats left....{booked_seats}/{car_seats}' \
+        ' ```'

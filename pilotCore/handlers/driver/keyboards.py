@@ -2,10 +2,11 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from pilotCore.handlers.driver import static_text as driver_text
 from pilotCore.handlers.driver import manage_data as driver_data
-from pilotCore.handlers.utils import scrolling_row
 
 from pilotCore.handlers.goto import static_text as goto_text
 from pilotCore.handlers.goto import manage_data as goto_data
+
+from pilotCore.handlers.utils import scrolling_row
 
 
 

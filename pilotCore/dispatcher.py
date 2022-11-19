@@ -131,7 +131,21 @@ def make_conversation_handler():
                         f'^{customer_data.CUSTOMER_SET_NUMBER_CB}$'
                     )
                 ),
-
+                CallbackQueryHandler(
+                    customer_handlers.customer_list_routes,
+                    pattern=format(
+                        f'^{customer_data.LIST_ROUTES_CB}$|'
+                        f'^{customer_data.ROUTES_PREV_RIDE}$|'
+                        f'{customer_data.ROUTES_DYNAMIC_CB_RIDE_PATT}'
+                        f'^{customer_data.ROUTES_NEXT_RIDE}$'
+                    )
+                ),
+                CallbackQueryHandler(
+                    customer_handlers.customer_select_seats,
+                    pattern=format(
+                        f'^{customer_data.ROUTES_SELECT_BUTTON_CB}$'
+                    )
+                ),
                 # Catch unnessesary messages from user:
                 MessageHandler(
                     Filters.regex('^(?!\/).*$'), driver_handlers.delete_missclicked_messages

@@ -59,6 +59,7 @@ class User(CreateUpdateTracker):
 
         return u, created
 
+    #### Extra (need_to_be_deleted)
     @classmethod
     def get_user(cls, update: Update, context: CallbackContext) -> User:
         u, _ = cls.get_user_and_created(update, context)
@@ -205,6 +206,11 @@ class DriverRides(CreateUpdateTracker):
 
         dr, created = cls.objects.get_or_create(user_id=data.get('user_id'), ride_id=max_ride_id)
         return dr, created
+    
+    @classmethod
+    def get_ride(cls, passed_ride_id):
+        dr = cls.objects.get(ride_id=passed_ride_id)
+        return dr
 
     @classmethod
     def delete_ride(cls, update: Update, context: CallbackContext) -> str:
@@ -258,13 +264,7 @@ class DriverRides(CreateUpdateTracker):
         dr.save()
         return dr
 
-    # @classmethod
-    # def remove_direction(cls, field_data, update: Update, context: CallbackContext) -> Optional[DriverRides]:
-    #     dr, _ = cls.get_or_create_user(update, context)
-    #     deleted_direction = re.sub(f'-> {field_data}', '', dr.direction)
-    #     dr.direction = deleted_direction
-    #     dr.save()
-    #     return dr
+
 
 
 class DriverUtils(CreateUpdateTracker):
