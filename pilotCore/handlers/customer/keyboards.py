@@ -6,6 +6,8 @@ from pilotCore.handlers.customer import manage_data as customer_data
 from pilotCore.handlers.goto import static_text as goto_text
 from pilotCore.handlers.goto import manage_data as goto_data
 
+from pilotCore.handlers.utils import scrolling_row
+
 
 
 
@@ -55,3 +57,78 @@ def make_keyboard_customer_properties() -> InlineKeyboardMarkup:
         ],
     ]
     return InlineKeyboardMarkup(buttons)
+
+
+def make_keyboard_customer_list_routes(exists: bool, layout: list) -> InlineKeyboardMarkup:
+    buttons = []
+    if exists:
+        scroll_row = scrolling_row.scroll_layout_keyboard(
+            layout,
+            customer_data.ROUTES_CB_PREFIX,
+            customer_data.ROUTES_PREV_RIDE,
+            customer_data.ROUTES_NEXT_RIDE,
+        )
+        middle_row = [
+            # Select route:
+            InlineKeyboardButton(
+                customer_text.routes_select_bt,
+                callback_data=customer_data.ROUTES_SELECT_BUTTON_CB
+            )
+        ]
+        buttons.append(scroll_row)
+        buttons.append(middle_row)
+
+    lower_row = [
+        # Navigation here:
+        [
+            # Back customer main:
+            InlineKeyboardButton(
+                goto_text.go_customer_main_bt,
+                callback_data=goto_data.GO_CUSTOMER_MAIN_CB
+            )
+        ],
+    ]
+    buttons.extend(lower_row)
+    return InlineKeyboardMarkup(buttons)
+
+
+
+def make_keyboard_select_seats(seats) -> InlineKeyboardMarkup:
+    buttons = [
+        [   
+            InlineKeyboardButton(
+                "-",
+                callback_data=customer_data.CUSTOMER_SELECT_SEATS_MINUS_CB
+            ),
+            InlineKeyboardButton(
+                f"{seats}",
+                callback_data=customer_data.CUSTOMER_SELECT_SEATS_NUM_CB
+            ),
+            InlineKeyboardButton(
+                "+",
+                callback_data=customer_data.CUSTOMER_SELECT_SEATS_PLUS_CB
+            )
+        ],
+         [
+            InlineKeyboardButton(
+                customer_text.customer_select_seats_confirm_bt,
+                callback_data=customer_data.CUSTOMER_SELECT_SEATS_CONFIRM_CB
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                goto_text.go_customer_list_routes_bt,
+                callback_data=goto_data.GO_CUSTOMER_LIST_ROUTES_CB
+            ),
+            InlineKeyboardButton(
+                # customer_text.go_customer_main_bt,
+                # callback_data=customer_data.GO_CUSTOMER_MAIN_CB
+            )
+        ],
+    ]
+    return InlineKeyboardMarkup(buttons)
+
+
+
+
+
