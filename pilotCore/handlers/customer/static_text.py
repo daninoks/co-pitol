@@ -16,6 +16,14 @@ list_routes_bt = 'available routes'
 set_route_alert_bt = 'set route alert'
 customer_properties_bt = 'customer properties'
 
+customer_main_ride_booked_tx = '``` \n' \
+        '       BOOKED RIDE: \n' \
+        'Ride id............{ride_id} \n' \
+        'Depart time........{dep_time} \n' \
+        'Direction..........{direction} \n' \
+        'Seats booked.......{seats_booked}' \
+        ' ```'
+
 
 # Customer list routes page:
 routes_select_bt = 'Select'
@@ -43,9 +51,18 @@ customer_properties_set_dt: Dict[str, str] = {
 
 
 # Select seats:
+customer_select_seats_confirm_bt = 'Confirm'
+customer_ride_confirm_bt = 'Confirm'
+
 customer_select_seats_tx = '``` \n' \
-        'Ride id.......{ride_id} \n' \
-        'Depart time...{dep_time} \n' \
-        'Direction.....{direction} \n' \
-        'Seats left....{booked_seats}/{car_seats}' \
+        'Ride id............{ride_id} \n' \
+        'Depart time........{dep_time} \n' \
+        'Direction..........{direction} \n' \
+        'Seats sel/avail....{sel_seats}/{avail_seats}' \
+        '\n\n {warning_mess}' \
         ' ```'
+
+select_seats_min_warning_mess = 'You cant select less then 1 seats'
+select_seats_max_warning_mess = 'You cant select more then {car_seats} seats'
+select_seats_warning_mess = '!If you confirm ride, you can not cancel it in future!'
+

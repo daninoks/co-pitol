@@ -119,7 +119,8 @@ def make_conversation_handler():
                     customer_handlers.customer_main,
                     pattern=format(
                         f'^{welcome_data.CUSTOMER_BUTTON}$|'
-                        f'^{goto_data.GO_CUSTOMER_MAIN_CB}$'
+                        f'^{goto_data.GO_CUSTOMER_MAIN_CB}$|'
+                        f'^{customer_data.CUSTOMER_RIDE_CONFIRM_CB}$'
                     )
                 ),
                 CallbackQueryHandler(
@@ -137,13 +138,18 @@ def make_conversation_handler():
                         f'^{customer_data.LIST_ROUTES_CB}$|'
                         f'^{customer_data.ROUTES_PREV_RIDE}$|'
                         f'{customer_data.ROUTES_DYNAMIC_CB_RIDE_PATT}'
-                        f'^{customer_data.ROUTES_NEXT_RIDE}$'
+                        f'^{customer_data.ROUTES_NEXT_RIDE}$|'
+                        f'^{goto_data.GO_CUSTOMER_LIST_ROUTES_CB}$'
                     )
                 ),
                 CallbackQueryHandler(
                     customer_handlers.customer_select_seats,
                     pattern=format(
-                        f'^{customer_data.ROUTES_SELECT_BUTTON_CB}$'
+                        f'^{customer_data.CUSTOMER_SELECT_SEATS_MINUS_CB}$|'
+                        f'^{customer_data.CUSTOMER_SELECT_SEATS_PLUS_CB}$|'
+                        f'^{customer_data.ROUTES_SELECT_BUTTON_CB}$|'
+                        f'^{customer_data.CUSTOMER_SELECT_SEATS_CONFIRM_CB}$|'
+                        f'^{goto_data.GO_CUSTOMER_SELECT_SEATS_CB}$'
                     )
                 ),
                 # Catch unnessesary messages from user:

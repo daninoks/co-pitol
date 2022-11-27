@@ -76,7 +76,7 @@ class CustomerAdmin(admin.ModelAdmin):
 class CustomerAdmin(admin.ModelAdmin):
     list_display = [
         'id', 'user_id', 'username',
-        'ride_from', 'ride_to', 'sel_ride_id',
+        'ride_from', 'ride_to', 'ride_id_booked',
         'seats_booked', 'status'
     ]
     list_filter = ['status', ]

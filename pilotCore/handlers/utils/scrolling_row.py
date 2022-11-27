@@ -32,7 +32,16 @@ def scroll_layout_handler(current_page: int, pages_num: int) -> list:
             pages_layout[ind] = current_page_marker
     else:
         pages_layout = list(range(0, pages_num))
-        pages_layout[page_selected] = current_page_marker
+        # ind = pages_layout.index(page_selected)
+        # pages_layout[ind] = current_page_marker
+
+        if page_selected in pages_layout:
+            pages_layout[page_selected] = current_page_marker
+        else:
+            pages_layout[0] = current_page_marker
+
+
+        
     return pages_layout
 
 

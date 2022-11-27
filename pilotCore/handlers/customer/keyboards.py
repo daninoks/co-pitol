@@ -97,7 +97,7 @@ def make_keyboard_select_seats(seats) -> InlineKeyboardMarkup:
     buttons = [
         [   
             InlineKeyboardButton(
-                "-",
+                "minus",
                 callback_data=customer_data.CUSTOMER_SELECT_SEATS_MINUS_CB
             ),
             InlineKeyboardButton(
@@ -105,7 +105,7 @@ def make_keyboard_select_seats(seats) -> InlineKeyboardMarkup:
                 callback_data=customer_data.CUSTOMER_SELECT_SEATS_NUM_CB
             ),
             InlineKeyboardButton(
-                "+",
+                "plus",
                 callback_data=customer_data.CUSTOMER_SELECT_SEATS_PLUS_CB
             )
         ],
@@ -120,10 +120,10 @@ def make_keyboard_select_seats(seats) -> InlineKeyboardMarkup:
                 goto_text.go_customer_list_routes_bt,
                 callback_data=goto_data.GO_CUSTOMER_LIST_ROUTES_CB
             ),
-            InlineKeyboardButton(
-                # customer_text.go_customer_main_bt,
-                # callback_data=customer_data.GO_CUSTOMER_MAIN_CB
-            )
+            # InlineKeyboardButton(
+            #     # customer_text.go_customer_main_bt,
+            #     # callback_data=customer_data.GO_CUSTOMER_MAIN_CB
+            # )
         ],
     ]
     return InlineKeyboardMarkup(buttons)
@@ -132,3 +132,17 @@ def make_keyboard_select_seats(seats) -> InlineKeyboardMarkup:
 
 
 
+def make_keyboard_confirm_ride() -> InlineKeyboardMarkup:
+    buttons = [
+        [   
+            InlineKeyboardButton(
+                goto_text.go_customers_select_seats_bt,
+                callback_data=goto_data.GO_CUSTOMER_SELECT_SEATS_CB
+            ),
+            InlineKeyboardButton(
+                customer_text.customer_ride_confirm_bt,
+                callback_data=customer_data.CUSTOMER_RIDE_CONFIRM_CB
+            )
+        ]
+    ]
+    return InlineKeyboardMarkup(buttons)

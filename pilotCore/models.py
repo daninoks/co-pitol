@@ -111,7 +111,7 @@ class Driver(CreateUpdateTracker):
     mobile_number = models.PositiveBigIntegerField(default=0, editable=True)
 
     car_model = models.CharField(max_length=32, default=None, **nb)
-    car_seats = models.PositiveSmallIntegerField(default=None, **nb)
+    car_seats = models.PositiveSmallIntegerField(default=0, **nb)
     car_color = models.CharField(max_length=32, default=None, **nb)
     car_number = models.CharField(max_length=32,default=None, **nb)
 
@@ -135,6 +135,11 @@ class Driver(CreateUpdateTracker):
         data = extract_user_data_from_update(update)
         d, created = cls.objects.get_or_create(user_id=data.get('user_id'))
         return d, created
+
+    @classmethod
+    def get_d_by_user_id(cls, passed_user_id) -> User:
+        d = cls.objects.get(user_id=passed_user_id)
+        return d
 
     @classmethod
     def get_user(cls, update: Update, context: CallbackContext) -> User:
@@ -168,6 +173,9 @@ class DriverRides(CreateUpdateTracker):
     direction = models.TextField(default=None, **nb)
 
     seats_booked = models.PositiveSmallIntegerField(default=0, editable=False)
+    
+    car_seats = models.PositiveSmallIntegerField(default=0, editable=False)
+
 
     RIDE_OPEN = 'OPEN'
     RIDE_CLOSED = 'CLOSED'
@@ -204,11 +212,16 @@ class DriverRides(CreateUpdateTracker):
             print(e)
             max_ride_id = 'ORD_' + str(data.get('user_id')) + '_0'
 
-        dr, created = cls.objects.get_or_create(user_id=data.get('user_id'), ride_id=max_ride_id)
+        d, _ = Driver.get_or_create_user(update, context)
+        dr, created = cls.objects.get_or_create(
+            user_id=data.get('user_id'), 
+            ride_id=max_ride_id,
+            car_seats=d.car_seats
+        )
         return dr, created
     
     @classmethod
-    def get_ride(cls, passed_ride_id):
+    def get_dr_by_ride_id(cls, passed_ride_id):
         dr = cls.objects.get(ride_id=passed_ride_id)
         return dr
 
@@ -338,7 +351,7 @@ class CustomerRides(CreateUpdateTracker):
     ride_from = models.TextField(default=None, **nb)
     ride_to = models.TextField(default=None, **nb)
 
-    sel_ride_id = models.CharField(default=None, max_length=32, editable=False)
+    ride_id_booked = models.CharField(default=None, null=True, max_length=32, editable=False)
     seats_booked = models.PositiveSmallIntegerField(default=1, editable=False)
 
     CRIDE_OPEN = 'OPEN'

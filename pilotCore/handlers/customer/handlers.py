@@ -32,10 +32,13 @@ from pilotCore.handlers.utils import scrolling_row
 def customer_main(update: Update, context: CallbackContext) -> int:
     """Customer main page"""
     # Make 1st after customer confirmation.
-    c, created = Customer.get_or_create_user(update, context)
+    c, c_created = Customer.get_or_create_user(update, context)
+    cr, _ = CustomerRides.get_or_create_user(update, context)
+
     # Set last message_id:
     CustomerUtils.set_last_msg_id(update, context)
 
+    # Welcome states:
     if c.registred == c.CSTMR_ACCEPTED:
         text = customer_text.customer_main_tx
         keyboard = customer_keyboards.make_keyboard_customer_main()
@@ -43,17 +46,29 @@ def customer_main(update: Update, context: CallbackContext) -> int:
         text = customer_text.customer_banned_tx
         keyboard = None
     else:
-        if created:
+        if c_created:
             text = customer_text.customer_welcome_dialog_tx
         else:
             text = customer_text.customer_waiting_aproval_tx
         keyboard = goto_keyboards.make_keyboard_go_start_over()
+
+    # Disaplay info about selected ride:
+    print(f'cr.ride_id_booked {cr.ride_id_booked}')
+    if cr.ride_id_booked != None:
+        dr = DriverRides.get_dr_by_ride_id(cr.ride_id_booked)
+        text = customer_text.customer_main_ride_booked_tx.format(
+            ride_id=dr.ride_id,
+            dep_time=dr.departure_time,
+            direction=dr.direction,
+            seats_booked=cr.seats_booked
+        )
+
     context.bot.edit_message_text(
         text=text,
         chat_id=update.callback_query.message.chat.id,
         message_id=update.callback_query.message.message_id,
         reply_markup=keyboard,
-        parse_mode=ParseMode.HTML
+        parse_mode=ParseMode.MARKDOWN
     )
     return conversation.MAIN_TREE
 
@@ -148,7 +163,6 @@ def update_availible_routes_list(update) -> list:
     """Update list of pages for customer_list_routes from DriverRides"""
     availible_routes_open = list(
         DriverRides.objects.filter(
-            user_id=update.callback_query.message.chat.id,
             status=DriverRides.RIDE_OPEN
         ).values(
             'user_id', 'username',
@@ -156,9 +170,6 @@ def update_availible_routes_list(update) -> list:
         )
     )
     return availible_routes_open
-
-
-
 
 
 
@@ -191,16 +202,23 @@ def customer_list_routes(update: Update, context: CallbackContext) -> int:
         # keyboard pages:
         pages_layout = scrolling_row.scroll_layout_handler(current_page, pages_max)
         # current page object:
-        table_content_obj = table_content[current_page]
+        if current_page <= int(len(table_content) - 1):
+            table_content_obj = table_content[current_page]
+        else:
+             table_content_obj = table_content[0]
         class_object.selected_ride_id = table_content_obj.get('ride_id')
         class_object.save()
+        
+        d = Driver.get_d_by_user_id(table_content_obj.get('user_id'))
+        dr = DriverRides.get_dr_by_ride_id(table_content_obj.get('ride_id'))
+
 
         text = driver_text.my_rides_text.format(
             ride_id = table_content_obj.get('ride_id'),
             dep_time = table_content_obj.get('departure_time'),
             direction = table_content_obj.get('direction'),
-            booked_seats = table_content_obj.get('seats'),
-            car_seats = table_content_obj.get('car_seats')
+            booked_seats = dr.seats_booked,
+            car_seats = d.car_seats
         )
     else:
         rides_exists = False
@@ -221,34 +239,62 @@ def customer_list_routes(update: Update, context: CallbackContext) -> int:
 
 
 def customer_select_seats(update: Update, context: CallbackContext) -> int:
-    """   """
+    """Select number of seats and final ride confirm"""
 
-    print('in customer_seats')
+    call_back = update.callback_query.data
+    warning = ''
+
     cu, _ = CustomerUtils.get_or_create_user(update, context)
     cr, _ = CustomerRides.get_or_create_user(update, context)
-    dr = DriverRides.get_ride(cu.selected_ride_id)
-    d, _ = Driver.get_or_create_user(update, context)
+    dr = DriverRides.get_dr_by_ride_id(cu.selected_ride_id)
+    d = Driver.get_d_by_user_id(cu.user_id)
 
-    # Set customer selected ride:
-    cr.sel_ride_id = cu.selected_ride_id
-    cr.save()
-    print(cr.sel_ride_id)
+    # # Set customer selected ride:
+    # cr.seats_booked = cu.selected_ride_id
+    # cr.save()
+
+    if call_back == customer_data.CUSTOMER_SELECT_SEATS_MINUS_CB:
+        print('CUSTOMER_SELECT_SEATS_MINUS_CB')
+        if cr.seats_booked == 1:
+            warning = customer_text.select_seats_min_warning_mess
+        else:
+            cr.seats_booked -= 1
+            cr.save()
+            
+    if call_back == customer_data.CUSTOMER_SELECT_SEATS_PLUS_CB:
+        print('CUSTOMER_SELECT_SEATS_PLUS_CB')
+        if cr.seats_booked == d.car_seats:
+            warning = customer_text.select_seats_max_warning_mess.format(
+                car_seats = d.car_seats
+            )
+        else:
+            cr.seats_booked += 1
+            cr.save()
+
+    keyboard = customer_keyboards.make_keyboard_select_seats(cr.seats_booked)
+    
+    if call_back == customer_data.CUSTOMER_SELECT_SEATS_CONFIRM_CB:
+        # For now support only one selected ride.
+        # Link Customer to selected Ride.
+        cr.ride_id_booked = cu.selected_ride_id
+        cr.save()
+        warning = customer_text.select_seats_warning_mess
+        keyboard = customer_keyboards.make_keyboard_confirm_ride()
 
     text = customer_text.customer_select_seats_tx.format(
         ride_id = dr.ride_id,
         dep_time = dr.departure_time,
         direction = dr.direction,
-        booked_seats = dr.seats_booked,
-        car_seats = d.car_seats
+        sel_seats = cr.seats_booked,
+        avail_seats = d.car_seats - dr.seats_booked,
+        warning_mess = warning
     )
-    # text = 'QQQQQ'
-    # need customer seats
 
     context.bot.edit_message_text(
         text=text,
         chat_id=update.callback_query.message.chat.id,
         message_id=update.callback_query.message.message_id,
-        reply_markup=customer_keyboards.make_keyboard_select_seats(cr.seats_booked),
+        reply_markup=keyboard,
         parse_mode=ParseMode.MARKDOWN
     )
     return conversation.MAIN_TREE

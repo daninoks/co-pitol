@@ -14,3 +14,7 @@ go_car_settings_bt = u'\U00002B05' + ' Back'
 go_customer_main_bt = u'\U00002B05' + ' Back'
 # Go to customer_handlers.customer_properties:
 go_customer_properties_bt = u'\U00002B05' + ' Back'
+# Go to customer_handlers.customer_list_routes:
+go_customer_list_routes_bt = u'\U00002B05' + ' Back'
+# Go to customer_handlers.customer_select_seats:
+go_customers_select_seats_bt = u'\U00002B05' + ' Back'

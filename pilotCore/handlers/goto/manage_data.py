@@ -14,3 +14,7 @@ GO_CAR_SETTING_CB = 'GO_CAR_SETTING_CB'
 GO_CUSTOMER_MAIN_CB = 'GO_CUSTOMER_MAIN_CB'
 # Go to customer_handlers.customer_properties:
 GO_CUSTOMER_PROPERTIES_CB = 'GO_CUSTOMER_PROPERTIES_CB'
+# Go to customer_handlers.customer_list_routes:
+GO_CUSTOMER_LIST_ROUTES_CB = 'GO_CUSTOMER_LIST_ROUTES_CB'
+# Go to customer_handlers.customer_select_seats:
+GO_CUSTOMER_SELECT_SEATS_CB = 'GO_CUSTOMER_SELECT_SEATS'
