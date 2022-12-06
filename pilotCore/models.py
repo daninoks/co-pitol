@@ -189,12 +189,13 @@ class DriverRides(CreateUpdateTracker):
         default=RIDE_OPEN
     )
 
-    @classmethod
-    def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        """ python-telegram-bot's Update, Context --> User instance """
-        """ create using DrierUtilts class """
-        data = extract_user_data_from_update(update)
 
+    @classmethod
+    def create_new_ride_id(cls, update: Update, context: CallbackContext):
+        """
+        Creating new ride id:
+        """
+        data = extract_user_data_from_update(update)
         try:
             print('existing RIDE_ID')
             drList = list(
@@ -211,19 +212,37 @@ class DriverRides(CreateUpdateTracker):
         except (AttributeError, IndexError) as e:
             print(e)
             max_ride_id = 'ORD_' + str(data.get('user_id')) + '_0'
-
         d, _ = Driver.get_or_create_user(update, context)
+        
+        du, _ = DriverUtils.get_or_create_user(update, context)
+        du.new_ride_id = max_ride_id
+        du.save()
+        
         dr, created = cls.objects.get_or_create(
             user_id=data.get('user_id'), 
             ride_id=max_ride_id,
             car_seats=d.car_seats
         )
         return dr, created
-    
+
+
     @classmethod
     def get_dr_by_ride_id(cls, passed_ride_id):
         dr = cls.objects.get(ride_id=passed_ride_id)
         return dr
+        
+    @classmethod
+    def new_time(cls, ride_id: str, field_data: str) -> str:
+        # dr, _ = cls.get_or_create_user(update, context)
+        dr = cls.get_dr_by_ride_id(ride_id)
+        
+        if m := re.match('(\d{2})([:-]|(?=.))(\d{2})', field_data):
+            dr.departure_time = f'{m[1]}:{m[3]}'
+            dr.save()
+        return dr.departure_time
+
+
+    
 
     @classmethod
     def delete_ride(cls, update: Update, context: CallbackContext) -> str:
@@ -242,14 +261,6 @@ class DriverRides(CreateUpdateTracker):
         return msg
 
     @classmethod
-    def new_time(cls, update: Update, context: CallbackContext, field_data: str) -> str:
-        dr, _ = cls.get_or_create_user(update, context)
-        if m := re.match('(\d{2})([:-]|(?=.))(\d{2})', field_data):
-            dr.departure_time = f'{m[1]}:{m[3]}'
-            dr.save()
-        return dr.departure_time
-
-    @classmethod
     def edit_time(cls, update: Update, context: CallbackContext, field_data: str, ride_id: int) -> str:
         dr, _ = cls.get_user_by_ride_id(update, context)
         if m := re.match('(\d{2}[:,-]\d{2})|(\d{4})', field_data):
@@ -260,8 +271,8 @@ class DriverRides(CreateUpdateTracker):
 
     # Directions:
     @classmethod
-    def add_direction(cls, field_data, update: Update, context: CallbackContext) -> Optional[DriverRides]:
-        dr, _ = cls.get_or_create_user(update, context)
+    def add_direction(cls, ride_id: str, field_data) -> Optional[DriverRides]:
+        dr = cls.get_dr_by_ride_id(ride_id)
         dr.direction = (
             f' -> {field_data}' if dr.direction is None
             else f'{dr.direction} -> {field_data}'
@@ -270,8 +281,8 @@ class DriverRides(CreateUpdateTracker):
         return dr
 
     @classmethod
-    def remove_last_direction(cls, update: Update, context: CallbackContext) -> Optional[DriverRides]:
-        dr, _ = cls.get_or_create_user(update, context)
+    def remove_last_direction(cls, ride_id) -> Optional[DriverRides]:
+        dr = cls.get_dr_by_ride_id(ride_id)
         deleted_direction = re.sub(' -> ([a-zA-Z]\w+)$', '', dr.direction)
         dr.direction = deleted_direction
         dr.save()
@@ -285,6 +296,7 @@ class DriverUtils(CreateUpdateTracker):
     last_msg_id = models.PositiveBigIntegerField(default=0, editable=False)
     myrides_page = models.PositiveSmallIntegerField(default=0, editable=False)
     selected_ride_id = models.CharField(max_length=32, editable=False)
+    new_ride_id = models.CharField(max_length=32, null=True, editable=False)
 
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:

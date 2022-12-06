@@ -41,7 +41,7 @@ def get_ride_list(update) -> list:
             status=DriverRides.RIDE_OPEN
         ).values(
             'user_id', 'username',
-            'ride_id', 'departure_time', 'direction', 'seats_booked'
+            'ride_id', 'departure_time', 'direction', 'seats_booked', 'car_seats'
         )
     )
     return rides_list
@@ -62,14 +62,17 @@ def driver_main(update: Update, context: CallbackContext) -> int:
     if d.registred == d.DRVR_ACCEPTED:
         my_rides = get_ride_list(update)
         my_rides_block = ''
-        if my_rides != '':
+        if my_rides != []:
             my_rides_block += format('<code>\n\n      RIDES OWERIEW</code>')
         for item in my_rides:
             my_rides_block += static_text.my_rides_overiew.format(
                 ride_id = item.get('ride_id'),
                 dep_time = item.get('departure_time'),
                 direction = item.get('direction'),
-                booked_seats = item.get('seats'),
+                booked_seats = (
+                        0 if item.get('seats_booked') == None
+                        else item.get('seats_booked')
+                ),
                 car_seats = item.get('car_seats')
             )
 
@@ -146,7 +149,11 @@ def my_rides(update: Update, context: CallbackContext) -> int:
         # keyboard pages:
         pages_layout = scrolling_row.scroll_layout_handler(current_page, pages_max)
         # current page object:
-        rideObj = my_rides[current_page]
+        if current_page <= len(my_rides):
+            rideObj = my_rides[current_page]
+        else:
+            rideObj = my_rides[0]
+        
         du.selected_ride_id = rideObj.get('ride_id')
         du.save()
 
@@ -154,7 +161,10 @@ def my_rides(update: Update, context: CallbackContext) -> int:
             ride_id = rideObj.get('ride_id'),
             dep_time = rideObj.get('departure_time'),
             direction = rideObj.get('direction'),
-            booked_seats = rideObj.get('seats'),
+            booked_seats = (
+                    0 if rideObj.get('seats_booked') == 'None' 
+                    else rideObj.get('seats_booked')
+            ),
             car_seats = rideObj.get('car_seats')
         )
     else:
@@ -184,7 +194,7 @@ def my_rides_edit(update: Update, context: CallbackContext) -> int:
 
     # Initiate New ride_id:
     if call_back == manage_data.MY_RIDES_NEW_BUTTON:
-        dr, _ = DriverRides.get_or_create_user(update, context)
+        dr, _ = DriverRides.create_new_ride_id(update, context)
         text = 'enter depart time'
         keyboard = None
     # Delete Selected ride:
@@ -205,7 +215,9 @@ def my_rides_edit(update: Update, context: CallbackContext) -> int:
 def my_rides_time(update: Update, context: CallbackContext) -> int:
     """ Set departure time """
     field_data = update.message.text
-    dr_time = DriverRides.new_time(update, context, field_data)
+    du, _ = DriverUtils.get_or_create_user(update, context)
+    dr_time = DriverRides.new_time(du.new_ride_id, field_data)
+
     text = f'Selected time: {dr_time}'
     # Deleting user message:
     Bot(TELEGRAM_TOKEN).deleteMessage(
@@ -228,7 +240,10 @@ def my_rides_time(update: Update, context: CallbackContext) -> int:
 
 def set_direction(update: Update, context: CallbackContext) -> int:
     """Set DIRECTION_BUTTON Query"""
-    d, _ = DriverRides.get_or_create_user(update, context)
+    # d, _ = DriverRides.get_or_create_user(update, context)
+    du, _ = DriverUtils.get_or_create_user(update, context)
+    d = DriverRides.get_dr_by_ride_id(du.new_ride_id)
+
     call_back = update.callback_query.data
 
     if d.direction is None or d.direction == '':
@@ -238,11 +253,11 @@ def set_direction(update: Update, context: CallbackContext) -> int:
 
     if call_back in manage_data.CITIES_CALLBACK:
         field_data = manage_data.CITIES_CALLBACK[call_back]
-        d = DriverRides.add_direction(field_data, update, context)
+        d = DriverRides.add_direction(du.new_ride_id, field_data)
         text = d.direction
 
     if call_back == manage_data.DELETE_CITY_BUTTON:
-        d = DriverRides.remove_last_direction(update, context)
+        d = DriverRides.remove_last_direction(du.new_ride_id)
         text = d.direction
 
     if text == '':

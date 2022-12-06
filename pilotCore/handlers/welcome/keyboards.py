@@ -18,10 +18,10 @@ def make_keyboard_start_command() -> InlineKeyboardMarkup:
                 static_text.driver_button,
                 callback_data=manage_data.DRIVER_BUTTON
             ),
-            InlineKeyboardButton(
-                static_text.operator_button,
-                callback_data=manage_data.OPERATOR_BUTTON
-            )
+            # InlineKeyboardButton(
+            #     static_text.operator_button,
+            #     callback_data=manage_data.OPERATOR_BUTTON
+            # )
         ],
         [
             InlineKeyboardButton(

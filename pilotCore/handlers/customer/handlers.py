@@ -53,7 +53,6 @@ def customer_main(update: Update, context: CallbackContext) -> int:
         keyboard = goto_keyboards.make_keyboard_go_start_over()
 
     # Disaplay info about selected ride:
-    print(f'cr.ride_id_booked {cr.ride_id_booked}')
     if cr.ride_id_booked != None:
         dr = DriverRides.get_dr_by_ride_id(cr.ride_id_booked)
         text = customer_text.customer_main_ride_booked_tx.format(
@@ -254,7 +253,6 @@ def customer_select_seats(update: Update, context: CallbackContext) -> int:
     # cr.save()
 
     if call_back == customer_data.CUSTOMER_SELECT_SEATS_MINUS_CB:
-        print('CUSTOMER_SELECT_SEATS_MINUS_CB')
         if cr.seats_booked == 1:
             warning = customer_text.select_seats_min_warning_mess
         else:
@@ -262,7 +260,6 @@ def customer_select_seats(update: Update, context: CallbackContext) -> int:
             cr.save()
             
     if call_back == customer_data.CUSTOMER_SELECT_SEATS_PLUS_CB:
-        print('CUSTOMER_SELECT_SEATS_PLUS_CB')
         if cr.seats_booked == d.car_seats:
             warning = customer_text.select_seats_max_warning_mess.format(
                 car_seats = d.car_seats
@@ -278,6 +275,9 @@ def customer_select_seats(update: Update, context: CallbackContext) -> int:
         # Link Customer to selected Ride.
         cr.ride_id_booked = cu.selected_ride_id
         cr.save()
+        dr.seats_booked = dr.seats_booked + cr.seats_booked
+        dr.save()
+
         warning = customer_text.select_seats_warning_mess
         keyboard = customer_keyboards.make_keyboard_confirm_ride()
 

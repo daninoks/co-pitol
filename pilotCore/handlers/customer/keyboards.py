@@ -19,16 +19,22 @@ def make_keyboard_customer_main() -> InlineKeyboardMarkup:
                 callback_data=customer_data.LIST_ROUTES_CB
             )
         ],
-        [
-            InlineKeyboardButton(
-                customer_text.set_route_alert_bt,
-                callback_data=customer_data.SET_ROUTE_ALERT_CB
-            )
-        ],
+        # [
+        #     InlineKeyboardButton(
+        #         customer_text.set_route_alert_bt,
+        #         callback_data=customer_data.SET_ROUTE_ALERT_CB
+        #     )
+        # ],
         [
             InlineKeyboardButton(
                 customer_text.customer_properties_bt,
                 callback_data=customer_data.CUSTOMER_PROPERTIES_CB
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                goto_text.go_start_over_bt,
+                callback_data=goto_data.GO_START_OVER_CB
             )
         ],
     ]

@@ -35,9 +35,9 @@ driver_main_text = '<code>      WELCOME DEAR DRIVER</code> \n\n' \
 
 my_rides_overiew = '\n\n' \
         '<code>   {ride_id}</code> \n' \
-        '<code>Depart time...{dep_time}</code> \n' \
-        '<code>Direction.....{direction}</code> \n' \
-        '<code>Seats left....{booked_seats}/{car_seats}</code>'
+        '<code>Depart time.......{dep_time}</code> \n' \
+        '<code>Direction.........{direction}</code> \n' \
+        '<code>Seats reserved....{booked_seats}/{car_seats}</code>'
 
 
 car_settings_dynamic = '<code>      DRIVER PROPERTIES:</code> \n\n' \
@@ -82,7 +82,7 @@ my_rides_text = '``` \n' \
         'Ride id.......{ride_id} \n' \
         'Depart time...{dep_time} \n' \
         'Direction.....{direction} \n' \
-        'Seats left....{booked_seats}/{car_seats}' \
+        'Seats reserved....{booked_seats}/{car_seats}' \
         ' ```'
 sel_direction_bt = 'Set Direction'
 

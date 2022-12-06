@@ -56,7 +56,7 @@ class DriverAdmin(admin.ModelAdmin):
 @admin.register(DriverUtils)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'user_id', 'last_msg_id', 'myrides_page', 'selected_ride_id'
+        'user_id', 'last_msg_id', 'myrides_page', 'selected_ride_id', 'new_ride_id'
     ]
 
 
