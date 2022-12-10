@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  # db:
+  #     image: postgres:12
+  #     container_name: django_project_postgres
+  #     restart: always
+  #     volumes:
+  #       - postgres_data:/var/lib/postgresql/data/
+  #     environment:
+  #       - POSTGRES_USER=djangouser
+  #       - POSTGRES_PASSWORD=password
+  #     env_file:
+  #       - ./.env
+  #     ports:
+  #       - "5433:5432"
+  # redis:
+  #   image: redis:alpine
+  #   container_name: django_project_redis
+  #   network_mode: "host"
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django_project_celery
+    restart: always
+    command: celery -A django_project worker --loglevel=INFO
+    volumes:
+      - .:/code
+    env_file:
+      - ./.env
+    # depends_on:
+    #   - redis
+    network_mode: "host"
+    # ports:
+    #   - "6378:6378"
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django_project_beat
+    restart: always
+    command: celery -A django_project beat -l info --scheduler django_celery_beat.schedulers.DatabaseScheduler
+    volumes:
+      - .:/code
+    env_file:
+      - ./.env
+    depends_on:
+      # - redis
+      - celery
+    # ports:
+    #   - "5433:5432"
+    # extra_hosts:
+    #   - "database:172.17.0.1"
+    network_mode: "host"
+
+
+
+volumes:
+  postgres_data:

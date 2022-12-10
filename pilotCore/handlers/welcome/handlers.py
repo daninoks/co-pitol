@@ -16,7 +16,7 @@ def command_start(update: Update, context: CallbackContext) -> int:
     """Handle start command"""
 
     text = static_text.command_start_text
-    print('---> Comand start handled')
+    #print('---> Comand start handled')
     update.message.reply_text(
         text=text,
         reply_markup=keyboards.make_keyboard_start_command()
@@ -27,7 +27,7 @@ def start_over(update: Update, context: CallbackContext) -> int:
     """Handle all back moves to main page"""
 
     text = static_text.command_start_text
-    print('---> Start over handled')
+    #print('---> Start over handled')
     context.bot.edit_message_text(
         text=text,
         chat_id=update.callback_query.message.chat.id,
@@ -42,7 +42,7 @@ def start_over(update: Update, context: CallbackContext) -> int:
 #
 #     # text = broadcast.broadcast_new_order()
 #
-#     print('IN TEST HANDLER')
+#     #print('IN TEST HANDLER')
 #
 #     context.bot.edit_message_text(
 #         text=text,

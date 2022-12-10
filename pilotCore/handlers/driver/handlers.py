@@ -22,7 +22,7 @@ from pilotCore.handlers.goto import keyboards as goto_keyboards
 
 def delete_missclicked_messages(update: Update, context: CallbackContext) -> None:
     """ Deleting messages from User outside the input conversation """
-    DriverUtils.inc_counter(update, context)
+    DriverUtils.set_last_msg_id(update, context)
 
     Bot(TELEGRAM_TOKEN).deleteMessage(
         chat_id=update.message.chat.id,
@@ -140,7 +140,7 @@ def my_rides(update: Update, context: CallbackContext) -> int:
         if call_back == manage_data.MR_PREV_RIDE:
             current_page = DriverUtils.set_myride_page(du, pages_max, -1)
         if call_back in manage_data.MR_DYNAMIC_CB_RIDE:
-            print(re.sub(f'{manage_data.MR_CB_PREFIX}:', '', call_back))
+            #print(re.sub(f'{manage_data.MR_CB_PREFIX}:', '', call_back))
             current_page = DriverUtils.set_myride_page(
                 du,
                 pages_max,

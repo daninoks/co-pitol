@@ -310,6 +310,7 @@ def setup_dispatcher(dp):
 
     conv_handler = make_conversation_handler()
     dp.add_handler(conv_handler)
+    dp.add_error_handler(error.send_stacktrace_to_tg_chat)
 
     return dp
 
@@ -335,7 +336,7 @@ def run_pooling():
     bot_info = Bot(TELEGRAM_TOKEN).get_me()
     bot_link = f"https://t.me/" + bot_info["username"]
 
-    print(f"Pooling of '{bot_link}' started")
+    #print(f"Pooling of '{bot_link}' started")
     # it is really useful to send '👋' emoji to developer
     # when you run local test
     # bot.send_message(text='👋', chat_id=<YOUR TELEGRAM ID>)
@@ -359,26 +360,26 @@ def process_telegram_event(update_json):
     dispatcher.process_update(update)
 
 
-def set_up_commands(bot_instance: Bot) -> None:
-    langs_with_commands: Dict[str, Dict[str, str]] = {
-        'en': {
-            'start': 'Start bot 🚀',
-            'admin': 'Show admin info ℹ️',
-        },
-        'ru': {
-            'start': 'Запустить бота 🚀',
-            'admin': 'Показать информацию для админов ℹ️',
-        }
-    }
+# def set_up_commands(bot_instance: Bot) -> None:
+#     langs_with_commands: Dict[str, Dict[str, str]] = {
+#         'en': {
+#             'start': 'Start bot 🚀',
+#             'admin': 'Show admin info ℹ️',
+#         },
+#         'ru': {
+#             'start': 'Запустить бота 🚀',
+#             'admin': 'Показать информацию для админов ℹ️',
+#         }
+#     }
 
-    bot_instance.delete_my_commands()
-    for language_code in langs_with_commands:
-        bot_instance.set_my_commands(
-            language_code=language_code,
-            commands=[
-                BotCommand(command, description) for command, description in langs_with_commands[language_code].items()
-            ]
-        )
+#     bot_instance.delete_my_commands()
+#     for language_code in langs_with_commands:
+#         bot_instance.set_my_commands(
+#             language_code=language_code,
+#             commands=[
+#                 BotCommand(command, description) for command, description in langs_with_commands[language_code].items()
+#             ]
+#         )
 
 
 # WARNING: it's better to comment the line below in DEBUG mode.

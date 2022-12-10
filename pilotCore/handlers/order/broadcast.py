@@ -27,7 +27,7 @@ from pilotCore.handlers.order import (
 def broadcast_new_order(orderObj, driverObj, driverUtilsObj) -> int:
     """broadcasts new orders"""
     """!!! gunicorn NEED REBOOT after changes here !!!"""
-    print('---> IN BROADCAST')
+    #print('---> IN BROADCAST')
     driver_ids = [
         re.sub('[(,)]', '', str(element)) for element in list(driverObj.objects.all().values_list('user_id'))
     ]
@@ -63,12 +63,12 @@ def broadcast_new_order(orderObj, driverObj, driverUtilsObj) -> int:
             pointed = ''
         )
 
-        print('test')
+        #print('test')
 
         du = driverUtilsObj.get_user_by_username_or_user_id(chat_id)
         mess_id = du.last_msg_id
         # mess_id = driverUtilsObj.objects.filter(user_id=int(chat_id)).first()
-        # print(du)
+        # #print(du)
 
         Bot(TELEGRAM_TOKEN).deleteMessage(
             chat_id=chat_id,

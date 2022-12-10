@@ -192,7 +192,7 @@ def customer_list_routes(update: Update, context: CallbackContext) -> int:
         if call_back == customer_data.ROUTES_PREV_RIDE:
             current_page = CustomerUtils.set_myride_page(class_object, pages_max, -1)
         if call_back in customer_data.ROUTES_DYNAMIC_CB_RIDE:
-            print(re.sub(f'{customer_data.ROUTES_CB_PREFIX}:', '', call_back))
+            #print(re.sub(f'{customer_data.ROUTES_CB_PREFIX}:', '', call_back))
             current_page = CustomerUtils.set_myride_page(
                 class_object,
                 pages_max,

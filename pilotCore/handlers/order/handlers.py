@@ -48,7 +48,7 @@ def new_orders_menu(update: Update, context: CallbackContext) -> int:
         if call_back == manage_data.NOM_PREV_ORDER:
             no_page = DriverUtils.set_new_orders_page(update, context, -1)
         if call_back in manage_data.NOM_DYNAMIC_CB_ORD:
-            print(re.sub(f'{manage_data.NOM_CB_PREFIX}:', '', call_back))
+            #print(re.sub(f'{manage_data.NOM_CB_PREFIX}:', '', call_back))
             no_page = DriverUtils.set_new_orders_page(
                 update,
                 context,
@@ -58,8 +58,8 @@ def new_orders_menu(update: Update, context: CallbackContext) -> int:
         # keyboard pages:
         pages_layout = scrolling_row.scroll_layout_handler(no_page, no_num)
 
-        print('pages ' + str(no_num))
-        print('current page ' + str(no_page))
+        #print('pages ' + str(no_num))
+        #print('current page ' + str(no_page))
 
         # current page object:
         orderObj = new_orders[no_page]
@@ -151,7 +151,7 @@ def my_orders_menu(update: Update, context: CallbackContext) -> int:
         if call_back == manage_data.MOM_PREV_ORDER:
             no_page = DriverUtils.set_my_orders_page(update, context, -1)
         if call_back in manage_data.MOM_DYNAMIC_CB_ORD:
-            print(re.sub(f'{manage_data.MOM_CB_PREFIX}:', '', call_back))
+            #print(re.sub(f'{manage_data.MOM_CB_PREFIX}:', '', call_back))
             no_page = DriverUtils.set_my_orders_page(
                 update,
                 context,

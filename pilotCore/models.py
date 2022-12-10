@@ -56,7 +56,6 @@ class User(CreateUpdateTracker):
                 if str(payload).strip() != str(data.get('user_id')).strip():  # you can't invite yourself
                     u.deep_link = payload
                     u.save()
-
         return u, created
 
     #### Extra (need_to_be_deleted)
@@ -176,7 +175,6 @@ class DriverRides(CreateUpdateTracker):
     
     car_seats = models.PositiveSmallIntegerField(default=0, editable=False)
 
-
     RIDE_OPEN = 'OPEN'
     RIDE_CLOSED = 'CLOSED'
     RIDE_STATE = [
@@ -189,7 +187,6 @@ class DriverRides(CreateUpdateTracker):
         default=RIDE_OPEN
     )
 
-
     @classmethod
     def create_new_ride_id(cls, update: Update, context: CallbackContext):
         """
@@ -197,20 +194,20 @@ class DriverRides(CreateUpdateTracker):
         """
         data = extract_user_data_from_update(update)
         try:
-            print('existing RIDE_ID')
+            #print('existing RIDE_ID')
             drList = list(
                 cls.objects.filter(
                     user_id=data.get('user_id')
                 ).values('ride_id').order_by('ride_id')
             )
             if update.callback_query.data == driver_data.MY_RIDES_NEW_BUTTON:
-                print('new RIDE_ID')
+                #print('new RIDE_ID')
                 mr_prefix = re.search('\d*$', drList[-1].get('ride_id'))
                 max_ride_id = re.sub(f'_{mr_prefix[0]}', f'_{int(mr_prefix[0]) + 1}', drList[-1].get('ride_id'))
             else:
                 max_ride_id = drList[-1].get('ride_id')
         except (AttributeError, IndexError) as e:
-            print(e)
+            #print(e)
             max_ride_id = 'ORD_' + str(data.get('user_id')) + '_0'
         d, _ = Driver.get_or_create_user(update, context)
         
@@ -224,7 +221,6 @@ class DriverRides(CreateUpdateTracker):
             car_seats=d.car_seats
         )
         return dr, created
-
 
     @classmethod
     def get_dr_by_ride_id(cls, passed_ride_id):
@@ -241,9 +237,6 @@ class DriverRides(CreateUpdateTracker):
             dr.save()
         return dr.departure_time
 
-
-    
-
     @classmethod
     def delete_ride(cls, update: Update, context: CallbackContext) -> str:
         # dr, ex = cls.get_field_by_ride_id(update, context)
@@ -251,8 +244,8 @@ class DriverRides(CreateUpdateTracker):
         data = extract_user_data_from_update(update)
         dr, created = cls.objects.get_or_create(user_id=data.get('user_id'), ride_id=du.selected_ride_id)
         ride_id = dr.ride_id
-        print(dr)
-        print(created)
+        #print(dr)
+        #print(created)
         if created:
             msg = f'Warning: SOmething went wrong. Field with ID: {ride_id} just created!'
         else:
@@ -442,7 +435,6 @@ class Order(CreateUpdateTracker):
         default=ORD_OPEN
     )
     pointed = models.PositiveBigIntegerField(default=None,  **nb)    # driver_id
-
 
     def save(cls, *args, **kw):
         if cls.order_id == 0:

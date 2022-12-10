@@ -12,8 +12,8 @@ def scroll_layout_handler(current_page: int, pages_num: int) -> list:
     page_selected = current_page
     pages_num = pages_num + 1
 
-    print('page_selected ' + str(page_selected))
-    print('pages_num ' + str(pages_num))
+    #print('page_selected ' + str(page_selected))
+    #print('pages_num ' + str(pages_num))
 
     max_listing_num = 5 if pages_num >= 5 else pages_num
 
@@ -90,7 +90,7 @@ def scroll_layout_model_page(
         value: int
 ) -> int:
     """Keyboard layout model for current page"""
-    print('value' + str(value))
+    #print('value' + str(value))
     if value == 0:
         setattr(modObj, pageAttr, 0)
     if value == -1:

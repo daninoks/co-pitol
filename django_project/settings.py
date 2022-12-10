@@ -38,7 +38,7 @@ if os.environ.get('DJANGO_DEBUG', default=False) in ['True', 'true', '1', True]:
 else:
     DEBUG = False
 
-ALLOWED_HOSTS = ['co-pilot.tech', 'www.co-pilot.tech', '179.61.188.226', 'localhost']
+ALLOWED_HOSTS = ['co-pilot.tech', 'www.co-pilot.tech', '179.61.188.226', 'localhost', "*"]
 
 
 # Application definition
@@ -51,6 +51,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'pilotCore',
+        # 3rd party apps
+    'django_celery_beat',
+    'debug_toolbar',
+
+    # 'django_project_celery',
+    # 'django_project_celery-beat',
+    # 'django_project_beat',
 ]
 
 MIDDLEWARE = [
@@ -61,6 +68,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+
 ]
 
 ROOT_URLCONF = 'django_project.urls'
@@ -96,10 +106,18 @@ DATABASES = {
 	'NAME': 'djangodb',
 	'USER': 'djangouser',
 	'PASSWORD': 'password',
-	'HOST': 'localhost',
-	'PORT': '',
+	# 'HOST': 'localhost',
+	# 'PORT': '',
+    'HOST': 'localhost',
+	'PORT': '5432',
     }
 }
+
+INTERNAL_IPS = [
+    # ...
+    '127.0.0.1',
+    # ...
+]
 
 
 # Password validation
@@ -148,7 +166,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # -----> CELERY
-REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379')
+# REDIS_URL = os.getenv('REDIS_URL', 'redis://redis:6379')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379')
+
 BROKER_URL = REDIS_URL
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
@@ -157,6 +177,9 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_DEFAULT_QUEUE = 'default'
+
+# CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
+CELERYBEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
 
 
 # -----> BOT
@@ -175,3 +198,5 @@ if TELEGRAM_TOKEN is None:
 #     sys.exit(1)
 
 TELEGRAM_LOGS_CHAT_ID = os.getenv("TELEGRAM_LOGS_CHAT_ID", default=None)
+
+
