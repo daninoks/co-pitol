@@ -13,9 +13,8 @@ from django_project.settings import DEBUG
 
 from pilotCore.models import (
     User,
-    Driver, DriverRides, DriverUtils,
-    Customer, CustomerRides, CustomerUtils,
-    Order,
+    Driver, DriverRides,
+    Customer, CustomerRides, User,
 )
 
 # Register your models here.
@@ -38,7 +37,7 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(Driver)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'user_id', 'username', 'mobile_number',
+        'user_id', 'mobile_number',
         'car_model', 'car_seats', 'car_color', 'car_number',
         'registred'
     ]
@@ -47,17 +46,11 @@ class DriverAdmin(admin.ModelAdmin):
 @admin.register(DriverRides)
 class DriverAdmin(admin.ModelAdmin):
     list_display = [
-        'id', 'user_id', 'username',
+        'id', 'user_id',
         'ride_id', 'departure_time', 'direction',
         'seats_booked', 'status'
     ]
     list_filter = ['status', ]
-
-@admin.register(DriverUtils)
-class DriverAdmin(admin.ModelAdmin):
-    list_display = [
-        'user_id', 'last_msg_id', 'myrides_page', 'selected_ride_id', 'new_ride_id'
-    ]
 
 
 
@@ -66,8 +59,8 @@ class DriverAdmin(admin.ModelAdmin):
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     list_display = [
-        'user_id', 'username',
-        'real_name', 'mobile_number', 
+        'user_id',
+        'mobile_number', 
         'registred'
     ]
     list_filter = ['registred', ]
@@ -75,31 +68,25 @@ class CustomerAdmin(admin.ModelAdmin):
 @admin.register(CustomerRides)
 class CustomerAdmin(admin.ModelAdmin):
     list_display = [
-        'id', 'user_id', 'username',
+        'id', 'user_id',
         'ride_from', 'ride_to', 'ride_id_booked',
         'seats_booked', 'status'
     ]
     list_filter = ['status', ]
 
-@admin.register(CustomerUtils)
-class CustomerAdmin(admin.ModelAdmin):
-    list_display = [
-        'user_id', 'last_msg_id', 'myrides_page', 'selected_ride_id'
-    ]
 
 
 
-
-# Order models:
-@admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
-    list_display = [
-        'id', 'order_id', 'real_name', 'username', 'phone_number',
-        'departure_time', 'travel_direction', 'seats',
-        'comment', 'status', 'pointed'
-    ]
-    list_filter = ['status', 'departure_time']
-    search_fields = ('order_id', 'departure_time', 'travel_direction')
+# # Order models:
+# @admin.register(Order)
+# class OrderAdmin(admin.ModelAdmin):
+#     list_display = [
+#         'id', 'order_id', 'real_name', 'username', 'phone_number',
+#         'departure_time', 'travel_direction', 'seats',
+#         'comment', 'status', 'pointed'
+#     ]
+#     list_filter = ['status', 'departure_time']
+#     search_fields = ('order_id', 'departure_time', 'travel_direction')
 
 
     # def broadcast(self, request, queryset):

@@ -8,24 +8,42 @@ from telegram import (
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 
-from django.db.models import Q
-
 from django_project.settings import TELEGRAM_TOKEN
 
 from pilotCore import conversation
 from pilotCore.models import (
-    Customer, CustomerRides, CustomerUtils,
-    Driver, DriverRides,
-    Order
+        User,
+        Customer, CustomerRides,
+        Driver, DriverRides
 )
-
-from pilotCore.handlers.customer import keyboards as customer_keyboards
-from pilotCore.handlers.customer import manage_data as customer_data
-from pilotCore.handlers.customer import static_text as customer_text
+from pilotCore.handlers.customer import (
+        keyboards as customer_keyboards,
+        manage_data as customer_data,
+        static_text as customer_text
+)
+from pilotCore.handlers.customer import (
+    manage_data as customer_data,
+    static_text as customer_text
+)
 from pilotCore.handlers.driver import static_text as driver_text
 from pilotCore.handlers.goto import keyboards as goto_keyboards
-
 from pilotCore.handlers.utils import scrolling_row
+
+
+
+
+def update_availible_routes_list(update) -> list:
+    """Update list of pages for customer_list_routes from DriverRides"""
+    availible_routes_open = list(
+        DriverRides.objects.filter(
+            status=DriverRides.RIDE_OPEN
+        ).values(
+            'user_id', 'username',
+            'ride_id', 'departure_time', 'direction', 'seats_booked'
+        )
+    )
+    return availible_routes_open
+
 
 
 
@@ -36,7 +54,7 @@ def customer_main(update: Update, context: CallbackContext) -> int:
     cr, _ = CustomerRides.get_or_create_user(update, context)
 
     # Set last message_id:
-    CustomerUtils.set_last_msg_id(update, context)
+    User.set_last_msg_id(update, context)
 
     # Welcome states:
     if c.registred == c.CSTMR_ACCEPTED:
@@ -136,7 +154,7 @@ def customer_actions_set(update: Update, context: CallbackContext, field_name: s
         timeout=None
     )
     # Get Query message_id to update:
-    cu, _ = CustomerUtils.get_or_create_user(update, context)
+    u, _ = User.get_user_and_created(update, context)
     # Edit previous message:
     context.bot.edit_message_text(
         text=text,
@@ -158,20 +176,6 @@ def set_customer_number(update: Update, context: CallbackContext) -> int:
 
 
 
-def update_availible_routes_list(update) -> list:
-    """Update list of pages for customer_list_routes from DriverRides"""
-    availible_routes_open = list(
-        DriverRides.objects.filter(
-            status=DriverRides.RIDE_OPEN
-        ).values(
-            'user_id', 'username',
-            'ride_id', 'departure_time', 'direction', 'seats_booked'
-        )
-    )
-    return availible_routes_open
-
-
-
 def customer_list_routes(update: Update, context: CallbackContext) -> int:
     """List all DriversRoutes. Provides selection of trip and booking"""
 
@@ -185,15 +189,15 @@ def customer_list_routes(update: Update, context: CallbackContext) -> int:
         rides_exists = True
         pages_max = len(table_content) - 1
 
-        class_object, _ = CustomerUtils.get_or_create_user(update, context)
+        class_object, _ = User.get_user_and_created(update, context)
         current_page = class_object.myrides_page
         if call_back == customer_data.ROUTES_NEXT_RIDE:
-            current_page = CustomerUtils.set_myride_page(class_object, pages_max, -2)
+            current_page = User.set_myride_page(class_object, pages_max, -2)
         if call_back == customer_data.ROUTES_PREV_RIDE:
-            current_page = CustomerUtils.set_myride_page(class_object, pages_max, -1)
+            current_page = User.set_myride_page(class_object, pages_max, -1)
         if call_back in customer_data.ROUTES_DYNAMIC_CB_RIDE:
             #print(re.sub(f'{customer_data.ROUTES_CB_PREFIX}:', '', call_back))
-            current_page = CustomerUtils.set_myride_page(
+            current_page = User.set_myride_page(
                 class_object,
                 pages_max,
                 int(re.sub(f'{customer_data.ROUTES_CB_PREFIX}:', '', call_back))
@@ -243,7 +247,7 @@ def customer_select_seats(update: Update, context: CallbackContext) -> int:
     call_back = update.callback_query.data
     warning = ''
 
-    cu, _ = CustomerUtils.get_or_create_user(update, context)
+    u, _ = User.get_user_and_created(update, context)
     cr, _ = CustomerRides.get_or_create_user(update, context)
     dr = DriverRides.get_dr_by_ride_id(cu.selected_ride_id)
     d = Driver.get_d_by_user_id(cu.user_id)

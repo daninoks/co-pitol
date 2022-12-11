@@ -48,12 +48,12 @@ def make_conversation_handler():
             CommandHandler("start", welcome_handlers.command_start),
             CommandHandler("reg_operator", operator_handlers.reg_operator),
             # CommandHandler("driver", driver_handlers.driver_main),
-            CallbackQueryHandler(
-                order_handlers.new_orders_menu,
-                pattern=format(
-                    f'^{order_data.GO_TO_NEW_ORDERS}$'
-                )
-            )
+            # CallbackQueryHandler(
+            #     order_handlers.new_orders_menu,
+            #     pattern=format(
+            #         f'^{order_data.GO_TO_NEW_ORDERS}$'
+            #     )
+            # )
         ],
         states={
             conversation.MAIN_TREE: [
@@ -70,27 +70,27 @@ def make_conversation_handler():
                         f'^{goto_data.GO_DRIVER_MAIN_CB}$'
                     )
                 ),
-                CallbackQueryHandler(
-                    order_handlers.new_orders_menu,
-                    pattern=format(
-                        f'^{driver_data.NEW_ORDERS_BUTTON}$|'
-                        f'^{order_data.NOM_PREV_ORDER}$|'
-                        f'{order_data.NOM_DYNAMIC_CB_ORD_PATT}'
-                        f'^{order_data.NOM_NEXT_ORDER}$|'
-                        f'^{order_data.NOM_ACCEPT_ORDER_BUTTON}$|'
-                        f'^{order_data.NOM_DECLINE_ORDER_BUTTON}$'
-                    )
-                ),
-                CallbackQueryHandler(
-                    order_handlers.my_orders_menu,
-                    pattern=format(
-                        f'^{driver_data.MY_ORDERS_BUTTON}$|'
-                        f'^{order_data.MOM_PREV_ORDER}$|'
-                        f'{order_data.MOM_DYNAMIC_CB_ORD_PATT}'
-                        f'^{order_data.MOM_NEXT_ORDER}$|'
-                        f'^{order_data.MOM_DECLINE_ORDER_BUTTON}$'
-                    )
-                ),
+                # CallbackQueryHandler(
+                #     order_handlers.new_orders_menu,
+                #     pattern=format(
+                #         f'^{driver_data.NEW_ORDERS_BUTTON}$|'
+                #         f'^{order_data.NOM_PREV_ORDER}$|'
+                #         f'{order_data.NOM_DYNAMIC_CB_ORD_PATT}'
+                #         f'^{order_data.NOM_NEXT_ORDER}$|'
+                #         f'^{order_data.NOM_ACCEPT_ORDER_BUTTON}$|'
+                #         f'^{order_data.NOM_DECLINE_ORDER_BUTTON}$'
+                #     )
+                # ),
+                # CallbackQueryHandler(
+                #     order_handlers.my_orders_menu,
+                #     pattern=format(
+                #         f'^{driver_data.MY_ORDERS_BUTTON}$|'
+                #         f'^{order_data.MOM_PREV_ORDER}$|'
+                #         f'{order_data.MOM_DYNAMIC_CB_ORD_PATT}'
+                #         f'^{order_data.MOM_NEXT_ORDER}$|'
+                #         f'^{order_data.MOM_DECLINE_ORDER_BUTTON}$'
+                #     )
+                # ),
                 CallbackQueryHandler(
                     driver_handlers.my_rides,
                     pattern=format(
@@ -358,6 +358,7 @@ except telegram.error.Unauthorized:
 def process_telegram_event(update_json):
     update = Update.de_json(update_json, bot)
     dispatcher.process_update(update)
+    logging.debug('Update handled')
 
 
 # def set_up_commands(bot_instance: Bot) -> None:

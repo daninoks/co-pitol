@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import logging
 
 from typing import Union, Optional, Tuple
 
@@ -24,14 +25,18 @@ class AdminUserManager(Manager):
         return super().get_queryset().filter(is_admin=True)
 
 
-# Users model:
+# User model:
 class User(CreateUpdateTracker):
+    """
+    User class. 
+    Also contain old DriverUtilts and CustomerUtils.
+    """
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
-    username = models.CharField(max_length=32, editable=False, **nb)
-    first_name = models.CharField(max_length=256)
-    last_name = models.CharField(max_length=256, **nb)
-    language_code = models.CharField(max_length=8, help_text="Telegram client's lang", **nb)
-    deep_link = models.CharField(max_length=64, **nb)
+    username = models.CharField(default=None, null=True, max_length=32, editable=False)
+    first_name = models.CharField(default=None, null=True, max_length=32, editable=False)
+    last_name = models.CharField(default=None, null=True,  max_length=32,editable=False)
+    language_code = models.CharField(default=0, max_length=8, help_text="Telegram client's lang", editable=True)
+    deep_link = models.CharField(default=None, null=True, max_length=64, editable=False)
 
     is_blocked_bot = models.BooleanField(default=False)
 
@@ -40,6 +45,12 @@ class User(CreateUpdateTracker):
     objects = GetOrNoneManager()  # user = User.objects.get_or_none(user_id=<some_id>)
     admins = AdminUserManager()  # User.admins.all()
 
+    # System fields:
+    last_msg_id = models.PositiveBigIntegerField(default=0, editable=False)
+    myrides_page = models.PositiveSmallIntegerField(default=0, editable=False)
+    selected_ride_id = models.CharField(default=None, null=True, max_length=32, editable=False)
+
+
     def __str__(self):
         return f'@{self.username}' if self.username is not None else f'{self.user_id}'
 
@@ -47,9 +58,10 @@ class User(CreateUpdateTracker):
     def get_user_and_created(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         """ python-telegram-bot's Update, Context --> User instance """
         data = extract_user_data_from_update(update)
-        u, created = cls.objects.update_or_create(user_id=data.get('user_id'), defaults=data)
+        u, created = cls.objects.get_or_create(user_id=data.get('user_id'), defaults=data)
 
         if created:
+            logging.info(f"New:user:{u.user_id} created - {u}")
             # Save deep_link to User model
             if context is not None and context.args is not None and len(context.args) > 0:
                 payload = context.args[0]
@@ -58,11 +70,13 @@ class User(CreateUpdateTracker):
                     u.save()
         return u, created
 
-    #### Extra (need_to_be_deleted)
-    @classmethod
-    def get_user(cls, update: Update, context: CallbackContext) -> User:
-        u, _ = cls.get_user_and_created(update, context)
-        return u
+    # @classmethod
+    # def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
+    #     data = extract_user_data_from_update(update)
+    #     u, created = cls.objects.get_or_create(user_id=data["user_id"])
+    #     if created:
+    #         logging.info(f"New:user:{u.user_id} created - {u}")
+    #     return u, created
 
     @classmethod
     def get_user_by_username_or_user_id(cls, username_or_user_id: Union[str, int]) -> Optional[User]:
@@ -90,6 +104,24 @@ class User(CreateUpdateTracker):
         u.save()
         return u
 
+    # System fields:
+    @classmethod
+    def set_last_msg_id(cls, update: Update, context: CallbackContext) -> Optional[int]:
+        u, _ = cls.get_user_and_created(update, context)
+        try:
+            u.last_msg_id = update.message.message_id
+        except AttributeError as e:
+            logging.debug(f'User.set_last_msg_id got {e}')
+            u.last_msg_id = update.callback_query.message.message_id
+        u.save()
+        return u.last_msg_id
+
+    @classmethod
+    def set_myride_page(cls, uObj: object, pages: int, inc_value: int) -> Optional[int]:
+        page = scrolling_row.scroll_layout_model_page(uObj, 'myrides_page', pages, inc_value)
+        return page
+
+
     @property
     def invited_users(self) -> QuerySet[User]:
         return User.objects.filter(deep_link=str(self.user_id), created_at__gt=self.created_at)
@@ -106,13 +138,12 @@ class User(CreateUpdateTracker):
 # Driver models:
 class Driver(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
-    username = models.CharField(max_length=32, editable=False, **nb)
     mobile_number = models.PositiveBigIntegerField(default=0, editable=True)
 
-    car_model = models.CharField(max_length=32, default=None, **nb)
-    car_seats = models.PositiveSmallIntegerField(default=0, **nb)
-    car_color = models.CharField(max_length=32, default=None, **nb)
-    car_number = models.CharField(max_length=32,default=None, **nb)
+    car_model = models.CharField(default=None, null=True, max_length=32, editable=True)
+    car_seats = models.PositiveSmallIntegerField(default=0, editable=True)
+    car_color = models.CharField(default=None, null=True, max_length=32, editable=True)
+    car_number = models.CharField(default=None, null=True, max_length=32, editable=True)
 
     DRVR_ACCEPTED = 'ACCEPTED'
     DRVR_PENDING = 'PENDING'
@@ -133,6 +164,8 @@ class Driver(CreateUpdateTracker):
         """ python-telegram-bot's Update, Context --> User instance """
         data = extract_user_data_from_update(update)
         d, created = cls.objects.get_or_create(user_id=data.get('user_id'))
+        if created:
+            logging.info(f"New:Driver:{d.user_id} created - {d}")
         return d, created
 
     @classmethod
@@ -165,14 +198,12 @@ class Driver(CreateUpdateTracker):
 class DriverRides(CreateUpdateTracker):
     id = models.AutoField(primary_key=True)
     user_id = models.PositiveBigIntegerField(editable=False)  # telegram_id
-    username = models.CharField(max_length=32, editable=False, **nb)
 
     ride_id = models.CharField(max_length=32, editable=False)
-    departure_time = models.CharField(max_length=32, default=None, **nb)
-    direction = models.TextField(default=None, **nb)
+    departure_time = models.CharField(max_length=32, default=None, editable=True)
+    direction = models.TextField(default=None, null=True, editable=True)
 
     seats_booked = models.PositiveSmallIntegerField(default=0, editable=False)
-    
     car_seats = models.PositiveSmallIntegerField(default=0, editable=False)
 
     RIDE_OPEN = 'OPEN'
@@ -211,15 +242,17 @@ class DriverRides(CreateUpdateTracker):
             max_ride_id = 'ORD_' + str(data.get('user_id')) + '_0'
         d, _ = Driver.get_or_create_user(update, context)
         
-        du, _ = DriverUtils.get_or_create_user(update, context)
-        du.new_ride_id = max_ride_id
-        du.save()
+        u, _ = User.get_user_and_created(update, context)
+        u.new_ride_id = max_ride_id
+        u.save()
         
         dr, created = cls.objects.get_or_create(
             user_id=data.get('user_id'), 
             ride_id=max_ride_id,
             car_seats=d.car_seats
         )
+        if created:
+            logging.info(f"New:DriverRides:{dr.user_id}:{dr.ride_id} created - {dr}")
         return dr, created
 
     @classmethod
@@ -239,13 +272,10 @@ class DriverRides(CreateUpdateTracker):
 
     @classmethod
     def delete_ride(cls, update: Update, context: CallbackContext) -> str:
-        # dr, ex = cls.get_field_by_ride_id(update, context)
-        du, _ = DriverUtils.get_or_create_user(update, context)
+        u, _ = User.get_user_and_created(update, context)
         data = extract_user_data_from_update(update)
-        dr, created = cls.objects.get_or_create(user_id=data.get('user_id'), ride_id=du.selected_ride_id)
+        dr, created = cls.objects.get_or_create(user_id=data.get('user_id'), ride_id=u.selected_ride_id)
         ride_id = dr.ride_id
-        #print(dr)
-        #print(created)
         if created:
             msg = f'Warning: SOmething went wrong. Field with ID: {ride_id} just created!'
         else:
@@ -284,39 +314,9 @@ class DriverRides(CreateUpdateTracker):
 
 
 
-class DriverUtils(CreateUpdateTracker):
-    user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)      # telegram_id
-    last_msg_id = models.PositiveBigIntegerField(default=0, editable=False)
-    myrides_page = models.PositiveSmallIntegerField(default=0, editable=False)
-    selected_ride_id = models.CharField(max_length=32, editable=False)
-    new_ride_id = models.CharField(max_length=32, null=True, editable=False)
-
-    @classmethod
-    def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        data = extract_user_data_from_update(update)
-        du, created = cls.objects.get_or_create(user_id=data["user_id"])
-        return du, created
-
-    @classmethod
-    def set_last_msg_id(cls, update: Update, context: CallbackContext) -> Optional[int]:
-        du, _ = cls.get_or_create_user(update, context)
-        du.last_msg_id = update.callback_query.message.message_id
-        du.save()
-        return du.last_msg_id
-
-    @classmethod
-    def set_myride_page(cls, duObj: object, pages: int, inc_value: int) -> Optional[int]:
-        page = scrolling_row.scroll_layout_model_page(duObj, 'myrides_page', pages, inc_value)
-        return page
-
-
-
-
 # Customer models:
 class Customer(CreateUpdateTracker):
     user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)  # telegram_id
-    username = models.CharField(default=None, max_length=32, editable=False, **nb)
-    real_name= models.CharField(default=None, max_length=32, editable=False, **nb)
     mobile_number = models.BigIntegerField(default=0, editable=True)
 
     CSTMR_ACCEPTED = 'ACCEPTED'
@@ -337,6 +337,8 @@ class Customer(CreateUpdateTracker):
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         data = extract_user_data_from_update(update)
         c, created = cls.objects.get_or_create(user_id=data["user_id"])
+        if created:
+            logging.info(f"New:Customer:{c.user_id} created - {c}")
         return c, created
 
     @classmethod
@@ -350,11 +352,10 @@ class Customer(CreateUpdateTracker):
 
 class CustomerRides(CreateUpdateTracker):
     id = models.AutoField(primary_key=True)
-    user_id = models.PositiveBigIntegerField(editable=False)  # telegram_id
-    username = models.CharField(max_length=32, editable=False, **nb)
+    user_id = models.PositiveBigIntegerField(default=0, editable=False)  # telegram_id
 
-    ride_from = models.TextField(default=None, **nb)
-    ride_to = models.TextField(default=None, **nb)
+    ride_from = models.TextField(default=None, null=True, max_length=256, editable=False)
+    ride_to = models.TextField(default=None, null=True, max_length=256, editable=False)
 
     ride_id_booked = models.CharField(default=None, null=True, max_length=32, editable=False)
     seats_booked = models.PositiveSmallIntegerField(default=1, editable=False)
@@ -374,96 +375,68 @@ class CustomerRides(CreateUpdateTracker):
     @classmethod
     def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
         data = extract_user_data_from_update(update)
-        du, created = cls.objects.get_or_create(user_id=data["user_id"])
-        return du, created
-
-
-class CustomerUtils(CreateUpdateTracker):
-    user_id = models.PositiveBigIntegerField(primary_key=True, editable=False)      # telegram_id
-    last_msg_id = models.PositiveBigIntegerField(default=0, editable=False)
-    myrides_page = models.PositiveSmallIntegerField(default=0, editable=False)
-    selected_ride_id = models.CharField(max_length=32, editable=False)
-
-    @classmethod
-    def get_or_create_user(cls, update: Update, context: CallbackContext) -> Tuple[User, bool]:
-        data = extract_user_data_from_update(update)
-        du, created = cls.objects.get_or_create(user_id=data["user_id"])
-        return du, created
-
-    @classmethod
-    def set_last_msg_id(cls, update: Update, context: CallbackContext) -> Optional[int]:
-        du, _ = cls.get_or_create_user(update, context)
-        du.last_msg_id = update.callback_query.message.message_id
-        du.save()
-        return du.last_msg_id
-
-    @classmethod
-    def set_myride_page(cls, duObj: object, pages: int, inc_value: int) -> Optional[int]:
-        page = scrolling_row.scroll_layout_model_page(duObj, 'myrides_page', pages, inc_value)
-        return page
+        cr, created = cls.objects.get_or_create(user_id=data["user_id"])
+        if created:
+            logging.info(f"New:CustomerRides:{cr.user_id} created - {cr}")
+        return cr, created
 
 
 
 
+# # Orders models:
+# class Order(CreateUpdateTracker):
+#     order_id = models.PositiveIntegerField(default=0, editable=False)
+#     real_name = models.CharField(max_length=32, default=None)
+#     username = models.CharField(max_length=32, default=None)
+#     phone_number = models.PositiveIntegerField(default=None)
+#     departure_time = models.CharField(max_length=32, default=None)
+#     travel_direction = models.TextField(max_length=256, default=None)
+#     seats = models.PositiveSmallIntegerField(default=None)
+#     comment = models.TextField(default=None, max_length=128)
 
+#     ORD_OPEN = 'OPEN'
+#     ORD_PENDING = 'PENDING'
+#     ORD_CLOSED = 'CLOSED'
+#     ORDER_STATE = [
+#         (ORD_OPEN, 'Open'),
+#         (ORD_PENDING, 'Pending'),
+#         (ORD_CLOSED, 'Closed')
+#     ]
+#     status = models.CharField(
+#         max_length=7,
+#         choices=ORDER_STATE,
+#         default=ORD_OPEN
+#     )
+#     pointed = models.PositiveBigIntegerField(default=None)    # driver_id
 
+#     def save(cls, *args, **kw):
+#         if cls.order_id == 0:
+#             # oders_count = Order.objects.count()
+#             # double check(issues in upper case):
+#             orders_len = len(list(Order.objects.values('order_id')))
+#             cls.order_id = orders_len + 1
+#             cathcer = broadcast.broadcast_new_order(cls, Driver, User)
+#         return super(Order, cls).save(*args, **kw)
 
+#     @classmethod
+#     def get_order(cls, ord_id: int) -> Optional[Order]:
+#         o = cls.objects.filter(order_id=ord_id).first()
+#         return o
 
+#     @classmethod
+#     def link_order(cls, update: Update, context: CallbackContext, order_id: int) -> Optional[Order]:
+#         data = extract_user_data_from_update(update)
+#         o = cls.get_order(order_id)
+#         o.pointed = data["user_id"]
+#         o.status = cls.ORD_PENDING
+#         o.save()
+#         return o
 
-# Orders models:
-class Order(CreateUpdateTracker):
-    order_id = models.PositiveIntegerField(default=0, editable=False)
-    real_name = models.CharField(max_length=32, default=None, **nb)
-    username = models.CharField(max_length=32, default=None, **nb)
-    phone_number = models.PositiveIntegerField(default=None)
-    departure_time = models.CharField(max_length=32, default=None, **nb)
-    travel_direction = models.TextField(default=None, **nb)
-    seats = models.PositiveSmallIntegerField(default=None)
-    comment = models.TextField(default=None, **nb)
-
-    ORD_OPEN = 'OPEN'
-    ORD_PENDING = 'PENDING'
-    ORD_CLOSED = 'CLOSED'
-    ORDER_STATE = [
-        (ORD_OPEN, 'Open'),
-        (ORD_PENDING, 'Pending'),
-        (ORD_CLOSED, 'Closed')
-    ]
-    status = models.CharField(
-        max_length=7,
-        choices=ORDER_STATE,
-        default=ORD_OPEN
-    )
-    pointed = models.PositiveBigIntegerField(default=None,  **nb)    # driver_id
-
-    def save(cls, *args, **kw):
-        if cls.order_id == 0:
-            # oders_count = Order.objects.count()
-            # double check(issues in upper case):
-            orders_len = len(list(Order.objects.values('order_id')))
-            cls.order_id = orders_len + 1
-            cathcer = broadcast.broadcast_new_order(cls, Driver, DriverUtils)
-        return super(Order, cls).save(*args, **kw)
-
-    @classmethod
-    def get_order(cls, ord_id: int) -> Optional[Order]:
-        o = cls.objects.filter(order_id=ord_id).first()
-        return o
-
-    @classmethod
-    def link_order(cls, update: Update, context: CallbackContext, order_id: int) -> Optional[Order]:
-        data = extract_user_data_from_update(update)
-        o = cls.get_order(order_id)
-        o.pointed = data["user_id"]
-        o.status = cls.ORD_PENDING
-        o.save()
-        return o
-
-    @classmethod
-    def unlink_order(cls, update: Update, context: CallbackContext, order_id: int) -> Optional[Order]:
-        data = extract_user_data_from_update(update)
-        o = cls.get_order(order_id)
-        o.pointed = None
-        o.status = cls.ORD_OPEN
-        o.save()
-        return o
+#     @classmethod
+#     def unlink_order(cls, update: Update, context: CallbackContext, order_id: int) -> Optional[Order]:
+#         data = extract_user_data_from_update(update)
+#         o = cls.get_order(order_id)
+#         o.pointed = None
+#         o.status = cls.ORD_OPEN
+#         o.save()
+#         return o

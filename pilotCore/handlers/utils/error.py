@@ -11,7 +11,7 @@ from pilotCore.models import User
 
 
 def send_stacktrace_to_tg_chat(update: Update, context: CallbackContext) -> None:
-    u = User.get_user(update, context)
+    u, _ = User.get_user_and_created(update, context)
 
     logging.error("Exception while handling an update:", exc_info=context.error)
 
