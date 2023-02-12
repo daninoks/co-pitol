@@ -9,8 +9,6 @@
 # )
 
 
-
-
 # def broadcast_new_order(orderObj, driverObj, UserObj) -> int:
 #     """broadcasts new orders"""
 #     """!!! gunicorn NEED REBOOT after changes here !!!"""
@@ -66,6 +64,6 @@
 #             text=text,
 #             chat_id=chat_id,
 #             reply_markup=keyboards.make_keyboard_broadcast(),
-#             parse_mode=ParseMode.MARKDOWN
+#             parse_mode=ParseMode.HTML
 #         )
 #     return conversation.MAIN_TREE

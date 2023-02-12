@@ -9,17 +9,25 @@ import telegram.error
 from typing import Dict
 
 from telegram import (
-    Bot, Update, BotCommand,
+    Bot,
+    Update,
+    BotCommand,
     CallbackQuery,
 )
 from telegram.ext import (
-    Updater, Dispatcher, Filters,
-    CommandHandler, MessageHandler,
-    CallbackQueryHandler, RegexHandler,
-    ConversationHandler, Handler,
+    Updater,
+    Dispatcher,
+    Filters,
+    CommandHandler,
+    MessageHandler,
+    CallbackQueryHandler,
+    RegexHandler,
+    ConversationHandler,
+    Handler,
 )
 
-from django_project.settings import TELEGRAM_TOKEN, DEBUG
+from django_project.settings import TELEGRAM_TOKEN, DEBUG, TELEGRAM_LOGS_CHAT_ID
+
 from django_project.celery import app  # event processing in async mode
 
 from pilotCore.handlers.utils import error
@@ -59,16 +67,14 @@ def make_conversation_handler():
             conversation.MAIN_TREE: [
                 CallbackQueryHandler(
                     welcome_handlers.start_over,
-                    pattern=format(
-                        f'^{goto_data.GO_START_OVER_CB}$'
-                    )
+                    pattern=format(f"^{goto_data.GO_START_OVER_CB}$"),
                 ),
                 CallbackQueryHandler(
                     driver_handlers.driver_main,
                     pattern=format(
-                        f'^{welcome_data.DRIVER_BUTTON}$|'
-                        f'^{goto_data.GO_DRIVER_MAIN_CB}$'
-                    )
+                        f"^{welcome_data.DRIVER_BUTTON}$|"
+                        f"^{goto_data.GO_DRIVER_MAIN_CB}$"
+                    ),
                 ),
                 # CallbackQueryHandler(
                 #     order_handlers.new_orders_menu,
@@ -93,196 +99,170 @@ def make_conversation_handler():
                 # ),
                 CallbackQueryHandler(
                     driver_handlers.my_rides,
-                    pattern=format(
-                        f'^{driver_data.MY_RIDES_BUTTON}$'
-                    )
+                    pattern=format(f"^{driver_data.MY_RIDES_BUTTON}$"),
                 ),
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
                     pattern=format(
-                        f'^{driver_data.CAR_SETTINGS_BUTTON}$|'
-                        f'^{goto_data.GO_CAR_SETTING_CB}$'
-                    )
+                        f"^{driver_data.CAR_SETTINGS_BUTTON}$|"
+                        f"^{goto_data.GO_CAR_SETTING_CB}$"
+                    ),
                 ),
                 CallbackQueryHandler(
                     driver_handlers.driver_preference,
                     pattern=format(
-                        f'^{driver_data.CAR_MODEL_BUTTON}$|'
-                        f'^{driver_data.CAR_SEATS_BUTTON}$|'
-                        f'^{driver_data.CAR_COLOR_BUTTON}$|'
-                        f'^{driver_data.CAR_NUMBER_BUTTON}$|'
-                        f'^{driver_data.MOBILE_NUMBER_BUTTON}$'
-                    )
+                        f"^{driver_data.CAR_MODEL_BUTTON}$|"
+                        f"^{driver_data.CAR_SEATS_BUTTON}$|"
+                        f"^{driver_data.CAR_COLOR_BUTTON}$|"
+                        f"^{driver_data.CAR_NUMBER_BUTTON}$|"
+                        f"^{driver_data.MOBILE_NUMBER_BUTTON}$"
+                    ),
                 ),
                 # Customer converstions:
                 CallbackQueryHandler(
                     customer_handlers.customer_main,
                     pattern=format(
-                        f'^{welcome_data.CUSTOMER_BUTTON}$|'
-                        f'^{goto_data.GO_CUSTOMER_MAIN_CB}$|'
-                        f'^{customer_data.CUSTOMER_RIDE_CONFIRM_CB}$'
-                    )
+                        f"^{welcome_data.CUSTOMER_BUTTON}$|"
+                        f"^{goto_data.GO_CUSTOMER_MAIN_CB}$|"
+                        f"^{customer_data.CUSTOMER_RIDE_CONFIRM_CB}$"
+                    ),
                 ),
                 CallbackQueryHandler(
                     customer_handlers.customer_properties,
                     pattern=format(
-                        f'^{customer_data.CUSTOMER_PROPERTIES_CB}$|'
-                        f'^{goto_data.GO_CUSTOMER_PROPERTIES_CB}$|'
-                        f'^{customer_data.CUSTOMER_SET_NAME_CB}$|'
-                        f'^{customer_data.CUSTOMER_SET_NUMBER_CB}$'
-                    )
+                        f"^{customer_data.CUSTOMER_PROPERTIES_CB}$|"
+                        f"^{goto_data.GO_CUSTOMER_PROPERTIES_CB}$|"
+                        f"^{customer_data.CUSTOMER_SET_NAME_CB}$|"
+                        f"^{customer_data.CUSTOMER_SET_NUMBER_CB}$"
+                    ),
                 ),
                 CallbackQueryHandler(
                     customer_handlers.customer_list_routes,
                     pattern=format(
-                        f'^{customer_data.LIST_ROUTES_CB}$|'
-                        f'^{customer_data.ROUTES_PREV_RIDE}$|'
-                        f'{customer_data.ROUTES_DYNAMIC_CB_RIDE_PATT}'
-                        f'^{customer_data.ROUTES_NEXT_RIDE}$|'
-                        f'^{goto_data.GO_CUSTOMER_LIST_ROUTES_CB}$'
-                    )
+                        f"^{customer_data.LIST_ROUTES_CB}$|"
+                        f"^{customer_data.ROUTES_PREV_RIDE}$|"
+                        f"{customer_data.ROUTES_DYNAMIC_CB_RIDE_PATT}"
+                        f"^{customer_data.ROUTES_NEXT_RIDE}$|"
+                        f"^{goto_data.GO_CUSTOMER_LIST_ROUTES_CB}$"
+                    ),
                 ),
                 CallbackQueryHandler(
                     customer_handlers.customer_select_seats,
                     pattern=format(
-                        f'^{customer_data.CUSTOMER_SELECT_SEATS_MINUS_CB}$|'
-                        f'^{customer_data.CUSTOMER_SELECT_SEATS_PLUS_CB}$|'
-                        f'^{customer_data.ROUTES_SELECT_BUTTON_CB}$|'
-                        f'^{customer_data.CUSTOMER_SELECT_SEATS_CONFIRM_CB}$|'
-                        f'^{goto_data.GO_CUSTOMER_SELECT_SEATS_CB}$'
-                    )
+                        f"^{customer_data.CUSTOMER_SELECT_SEATS_MINUS_CB}$|"
+                        f"^{customer_data.CUSTOMER_SELECT_SEATS_PLUS_CB}$|"
+                        f"^{customer_data.ROUTES_SELECT_BUTTON_CB}$|"
+                        f"^{customer_data.CUSTOMER_SELECT_SEATS_CONFIRM_CB}$|"
+                        f"^{goto_data.GO_CUSTOMER_SELECT_SEATS_CB}$"
+                    ),
                 ),
                 # Catch unnessesary messages from user:
                 MessageHandler(
-                    Filters.regex('^(?!\/).*$'), driver_handlers.delete_missclicked_messages
+                    Filters.regex("^(?!\/).*$"),
+                    driver_handlers.delete_missclicked_messages,
                 ),
             ],
             # Driver set model:
             conversation.MODEL_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
-                    pattern=format(
-                        f'^{goto_data.GO_CAR_SETTING_CB}$'
-                    )
+                    pattern=format(f"^{goto_data.GO_CAR_SETTING_CB}$"),
                 ),
-                MessageHandler(
-                    Filters.regex('^(?!\/).*$'), driver_handlers.set_model
-                ),
+                MessageHandler(Filters.regex("^(?!\/).*$"), driver_handlers.set_model),
             ],
             # Driver set seats:
             conversation.SEATS_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
-                    pattern=format(
-                        f'^{goto_data.GO_CAR_SETTING_CB}$'
-                    )
+                    pattern=format(f"^{goto_data.GO_CAR_SETTING_CB}$"),
                 ),
-                MessageHandler(
-                    Filters.regex('^(?!\/).*$'), driver_handlers.set_seats
-                ),
+                MessageHandler(Filters.regex("^(?!\/).*$"), driver_handlers.set_seats),
             ],
             # Driver set color:
             conversation.COLOR_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
-                    pattern=format(
-                        f'^{goto_data.GO_CAR_SETTING_CB}$'
-                    )
+                    pattern=format(f"^{goto_data.GO_CAR_SETTING_CB}$"),
                 ),
-                MessageHandler(
-                    Filters.regex('^(?!\/).*$'), driver_handlers.set_color
-                ),
+                MessageHandler(Filters.regex("^(?!\/).*$"), driver_handlers.set_color),
             ],
             # Driver set car number:
             conversation.NUMBER_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
-                    pattern=format(
-                        f'^{goto_data.GO_CAR_SETTING_CB}$'
-                    )
+                    pattern=format(f"^{goto_data.GO_CAR_SETTING_CB}$"),
                 ),
-                MessageHandler(
-                    Filters.regex('^(?!\/).*$'), driver_handlers.set_number
-                ),
+                MessageHandler(Filters.regex("^(?!\/).*$"), driver_handlers.set_number),
             ],
             # Driver set mobile number:
             conversation.MOBILE_NUMBER_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.car_settings,
-                    pattern=format(
-                        f'^{goto_data.GO_CAR_SETTING_CB}$'
-                    )
+                    pattern=format(f"^{goto_data.GO_CAR_SETTING_CB}$"),
                 ),
                 MessageHandler(
-                    Filters.regex('^(?!\/).*$'), driver_handlers.set_mobile_number
+                    Filters.regex("^(?!\/).*$"), driver_handlers.set_mobile_number
                 ),
             ],
             # Driver directions number:
             conversation.RIDES_CONV: [
                 CallbackQueryHandler(
                     driver_handlers.driver_main,
-                    pattern=format(
-                        f'^{goto_data.GO_DRIVER_MAIN_CB}$'
-                    )
+                    pattern=format(f"^{goto_data.GO_DRIVER_MAIN_CB}$"),
                 ),
                 CallbackQueryHandler(
                     driver_handlers.my_rides,
                     pattern=format(
-                        f'^{driver_data.MY_RIDES_BUTTON}$|'
-                        f'{driver_data.MR_DYNAMIC_CB_RIDE_PATT}'
-                        f'^{driver_data.MR_PREV_RIDE}$|'
-                        f'^{driver_data.MR_NEXT_RIDE}$|'
-                        f'^{goto_data.GO_MY_RIDES_CB}$'
-                        
-                    )
+                        f"^{driver_data.MY_RIDES_BUTTON}$|"
+                        f"{driver_data.MR_DYNAMIC_CB_RIDE_PATT}"
+                        f"^{driver_data.MR_PREV_RIDE}$|"
+                        f"^{driver_data.MR_NEXT_RIDE}$|"
+                        f"^{goto_data.GO_MY_RIDES_CB}$"
+                    ),
                 ),
                 CallbackQueryHandler(
                     driver_handlers.my_rides_edit,
                     pattern=format(
-                        f'^{driver_data.MY_RIDES_NEW_BUTTON}$|'
-                        f'^{driver_data.MY_RIDES_EDIT_BUTTON}$|'
-                        f'^{driver_data.MY_RIDES_DEL_BUTTON}$'
-                    )
+                        f"^{driver_data.MY_RIDES_NEW_BUTTON}$|"
+                        f"^{driver_data.MY_RIDES_EDIT_BUTTON}$|"
+                        f"^{driver_data.MY_RIDES_DEL_BUTTON}$"
+                    ),
                 ),
                 CallbackQueryHandler(
                     driver_handlers.set_direction,
                     pattern=format(
-                        f'^{driver_data.SEL_DIRECTION_BUTTON}$|'
-                        f'^{driver_data.CITIES_PATTERN}$|'
-                        f'^{driver_data.DELETE_CITY_BUTTON}$'
-                    )
+                        f"^{driver_data.SEL_DIRECTION_BUTTON}$|"
+                        f"^{driver_data.CITIES_PATTERN}$|"
+                        f"^{driver_data.DELETE_CITY_BUTTON}$"
+                    ),
                 ),
                 MessageHandler(
-                    Filters.regex('^(?!\/).*$'), driver_handlers.my_rides_time
+                    Filters.regex("^(?!\/).*$"), driver_handlers.my_rides_time
                 ),
             ],
             # Customer set real name:
             conversation.CUSTOMER_SET_NAME_CONV: [
                 CallbackQueryHandler(
                     customer_handlers.customer_properties,
-                    pattern=format(
-                        f'^{goto_data.GO_CUSTOMER_PROPERTIES_CB}$'
-                    )
+                    pattern=format(f"^{goto_data.GO_CUSTOMER_PROPERTIES_CB}$"),
                 ),
                 MessageHandler(
-                    Filters.regex('^(?!\/).*$'), customer_handlers.set_customer_name
+                    Filters.regex("^(?!\/).*$"), customer_handlers.set_customer_name
                 ),
             ],
             # Customer set mobile number:
             conversation.CUSTOMER_SET_NUMBER_CONV: [
                 CallbackQueryHandler(
                     customer_handlers.customer_properties,
-                    pattern=format(
-                        f'^{goto_data.GO_CUSTOMER_PROPERTIES_CB}$'
-                    )
+                    pattern=format(f"^{goto_data.GO_CUSTOMER_PROPERTIES_CB}$"),
                 ),
                 MessageHandler(
-                    Filters.regex('^(?!\/).*$'), customer_handlers.set_customer_number
+                    Filters.regex("^(?!\/).*$"), customer_handlers.set_customer_number
                 ),
             ],
         },
         fallbacks=[
-            CommandHandler('start', welcome_handlers.command_start),
+            CommandHandler("start", welcome_handlers.command_start),
             CommandHandler("reg_operator", operator_handlers.reg_operator),
             # CommandHandler("driver", driver_handlers.driver_main),
             # CallbackQueryHandler(
@@ -294,7 +274,6 @@ def make_conversation_handler():
         ],
         per_message=False,
         # per_message=True,
-
     )
 
     return conv_handler
@@ -336,10 +315,11 @@ def run_pooling():
     bot_info = Bot(TELEGRAM_TOKEN).get_me()
     bot_link = f"https://t.me/" + bot_info["username"]
 
-    #print(f"Pooling of '{bot_link}' started")
+    print(f"Pooling of '{bot_link}' started")
     # it is really useful to send '👋' emoji to developer
     # when you run local test
-    # bot.send_message(text='👋', chat_id=<YOUR TELEGRAM ID>)
+    if TELEGRAM_LOGS_CHAT_ID:
+        telegram.Bot.send_message(text="👋", chat_id=TELEGRAM_LOGS_CHAT_ID)
 
     updater.start_polling()
     updater.idle()
@@ -358,7 +338,7 @@ except telegram.error.Unauthorized:
 def process_telegram_event(update_json):
     update = Update.de_json(update_json, bot)
     dispatcher.process_update(update)
-    logging.debug('Update handled')
+    logging.debug("Update handled")
 
 
 # def set_up_commands(bot_instance: Bot) -> None:
@@ -388,7 +368,9 @@ def process_telegram_event(update_json):
 # set_up_commands(bot)
 
 n_workers = 0 if DEBUG else 4
-dispatcher = setup_dispatcher(Dispatcher(bot, update_queue=None, workers=n_workers, use_context=True))
+dispatcher = setup_dispatcher(
+    Dispatcher(bot, update_queue=None, workers=n_workers, use_context=True)
+)
 
 # if __name__ == '__main__':
 #     run_pooling()

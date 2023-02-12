@@ -1,9 +1,9 @@
 import json
 import logging
 
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
-from django.http import JsonResponse
 
 from django_project.settings import DEBUG
 from pilotCore.dispatcher import process_telegram_event

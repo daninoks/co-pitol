@@ -1,6 +1,7 @@
 # /home/django_project/.gitignore
 #
 #
+dev.log
 .env
 .ftpconfig
 **/__pycache__/**

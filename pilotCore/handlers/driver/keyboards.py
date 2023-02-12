@@ -9,20 +9,8 @@ from pilotCore.handlers.goto import manage_data as goto_data
 from pilotCore.handlers.utils import scrolling_row
 
 
-
-
-def make_keyboard_driver_main(newOrd_alert: str, myOrd_alert: str) -> InlineKeyboardMarkup:
+def make_keyboard_driver_main() -> InlineKeyboardMarkup:
     buttons = [
-        # [
-        #     # InlineKeyboardButton(
-        #     #     driver_text.new_orders.format(alert = newOrd_alert),
-        #     #     callback_data=driver_data.NEW_ORDERS_BUTTON
-        #     # ),
-        #     InlineKeyboardButton(
-        #         driver_text.my_orders.format(alert = myOrd_alert),
-        #         callback_data=driver_data.MY_ORDERS_BUTTON
-        #     )
-        # ],
         [
             # InlineKeyboardButton(
             #     driver_text.work_time,          # UPDATES EVERY DAY
@@ -32,23 +20,19 @@ def make_keyboard_driver_main(newOrd_alert: str, myOrd_alert: str) -> InlineKeyb
             #     driver_text.direction,          # UPDATES EVERY DAY
             #     callback_data=driver_data.DIRECTION_BUTTON
             # )
-
             # Set New Ride [My Ride]:
             InlineKeyboardButton(
-                driver_text.my_rides_bt,
-                callback_data=driver_data.MY_RIDES_BUTTON
+                driver_text.my_rides_bt, callback_data=driver_data.MY_RIDES_BUTTON
             ),
         ],
         [
             InlineKeyboardButton(
-                driver_text.car_settings,
-                callback_data=driver_data.CAR_SETTINGS_BUTTON
+                driver_text.car_settings, callback_data=driver_data.CAR_SETTINGS_BUTTON
             )
         ],
         [
             InlineKeyboardButton(
-                goto_text.go_start_over_bt,
-                callback_data=goto_data.GO_START_OVER_CB
+                goto_text.go_start_over_bt, callback_data=goto_data.GO_START_OVER_CB
             )
         ],
     ]
@@ -68,7 +52,7 @@ def make_keyboard_my_rides(exists: bool, layout: list) -> InlineKeyboardMarkup:
             # Delete selected ride:
             InlineKeyboardButton(
                 driver_text.my_rides_del_bt,
-                callback_data=driver_data.MY_RIDES_DEL_BUTTON
+                callback_data=driver_data.MY_RIDES_DEL_BUTTON,
             ),
             # # Edit selected ride:
             # InlineKeyboardButton(
@@ -84,25 +68,25 @@ def make_keyboard_my_rides(exists: bool, layout: list) -> InlineKeyboardMarkup:
         [
             # Back driver main:
             InlineKeyboardButton(
-                goto_text.go_driver_main_bt,
-                callback_data=goto_data.GO_DRIVER_MAIN_CB
+                goto_text.go_driver_main_bt, callback_data=goto_data.GO_DRIVER_MAIN_CB
             ),
             # New ride:
             InlineKeyboardButton(
                 driver_text.my_rides_new_bt,
-                callback_data=driver_data.MY_RIDES_NEW_BUTTON
+                callback_data=driver_data.MY_RIDES_NEW_BUTTON,
             ),
         ],
     ]
     buttons.extend(lower_row)
     return InlineKeyboardMarkup(buttons)
 
+
 def make_keyboard_my_rides_time() -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
                 driver_text.sel_direction_bt,
-                callback_data=driver_data.SEL_DIRECTION_BUTTON
+                callback_data=driver_data.SEL_DIRECTION_BUTTON,
             )
         ],
     ]
@@ -114,33 +98,28 @@ def make_keyboard_car_settings() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(
                 driver_text.mobile_number,
-                callback_data=driver_data.MOBILE_NUMBER_BUTTON
+                callback_data=driver_data.MOBILE_NUMBER_BUTTON,
             )
         ],
         [
             InlineKeyboardButton(
-                driver_text.car_model,
-                callback_data=driver_data.CAR_MODEL_BUTTON
+                driver_text.car_model, callback_data=driver_data.CAR_MODEL_BUTTON
             ),
             InlineKeyboardButton(
-                driver_text.car_color,
-                callback_data=driver_data.CAR_COLOR_BUTTON
-            )
+                driver_text.car_color, callback_data=driver_data.CAR_COLOR_BUTTON
+            ),
         ],
         [
             InlineKeyboardButton(
-                driver_text.car_number,
-                callback_data=driver_data.CAR_NUMBER_BUTTON
+                driver_text.car_number, callback_data=driver_data.CAR_NUMBER_BUTTON
             ),
             InlineKeyboardButton(
-                driver_text.car_seats,
-                callback_data=driver_data.CAR_SEATS_BUTTON
-            )
+                driver_text.car_seats, callback_data=driver_data.CAR_SEATS_BUTTON
+            ),
         ],
         [
             InlineKeyboardButton(
-                goto_text.go_driver_main_bt,
-                callback_data=goto_data.GO_DRIVER_MAIN_CB
+                goto_text.go_driver_main_bt, callback_data=goto_data.GO_DRIVER_MAIN_CB
             )
         ],
     ]
@@ -151,28 +130,24 @@ def make_keyboard_set_direction() -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
-                driver_text.city_Yerevan,
-                callback_data=driver_data.CITY_YEREVAN_BUTTON
+                driver_text.city_Yerevan, callback_data=driver_data.CITY_YEREVAN_BUTTON
             ),
             InlineKeyboardButton(
-                driver_text.city_Ararat,
-                callback_data=driver_data.CITY_ARARAT_BUTTON
-            )
+                driver_text.city_Ararat, callback_data=driver_data.CITY_ARARAT_BUTTON
+            ),
         ],
         [
             InlineKeyboardButton(
                 driver_text.city_Ehegnadzor,
-                callback_data=driver_data.CITY_EHEGNADZOR_BUTTON
+                callback_data=driver_data.CITY_EHEGNADZOR_BUTTON,
             ),
             InlineKeyboardButton(
-                driver_text.city_Jermuk,
-                callback_data=driver_data.CITY_JERMUK_BUTTON
-            )
+                driver_text.city_Jermuk, callback_data=driver_data.CITY_JERMUK_BUTTON
+            ),
         ],
         [
             InlineKeyboardButton(
-                driver_text.del_city,
-                callback_data=driver_data.DELETE_CITY_BUTTON
+                driver_text.del_city, callback_data=driver_data.DELETE_CITY_BUTTON
             ),
             # InlineKeyboardButton(
             #     driver_text.reverse_way,
@@ -181,26 +156,24 @@ def make_keyboard_set_direction() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton(
-                goto_text.go_my_rides_bt,
-                callback_data=goto_data.GO_MY_RIDES_CB
+                goto_text.go_my_rides_bt, callback_data=goto_data.GO_MY_RIDES_CB
             )
-        ]
+        ],
     ]
     return InlineKeyboardMarkup(buttons)
+
 
 # First meet register form:
 def make_keyboard_go_settings() -> InlineKeyboardMarkup:
     buttons = [
         [
             InlineKeyboardButton(
-                driver_text.car_settings,
-                callback_data=driver_data.CAR_SETTINGS_BUTTON
+                driver_text.car_settings, callback_data=driver_data.CAR_SETTINGS_BUTTON
             )
         ],
         [
             InlineKeyboardButton(
-                goto_text.go_start_over_bt,
-                callback_data=goto_data.GO_START_OVER_CB
+                goto_text.go_start_over_bt, callback_data=goto_data.GO_START_OVER_CB
             )
         ],
     ]

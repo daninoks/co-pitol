@@ -14,8 +14,6 @@
 # from pilotCore.handlers.order import static_text, manage_data, keyboards
 
 
-
-
 # def update_new_order_list(update) -> list:
 #     """Update list of pages for new_orders_menu"""
 #     new_orders_open = list(Order.objects.filter(
@@ -124,13 +122,9 @@
 #         chat_id=update.callback_query.message.chat.id,
 #         message_id=update.callback_query.message.message_id,
 #         reply_markup=keyboards.make_keyboard_new_orders(ord_empty, pages_layout, decline_button),
-#         parse_mode=ParseMode.MARKDOWN
+#         parse_mode=ParseMode.HTML
 #     )
 #     return conversation.MAIN_TREE
-
-
-
-
 
 
 # def my_orders_menu(update: Update, context: CallbackContext) -> int:
@@ -206,6 +200,6 @@
 #         chat_id=update.callback_query.message.chat.id,
 #         message_id=update.callback_query.message.message_id,
 #         reply_markup=keyboards.make_keyboard_my_orders(ord_empty, pages_layout),
-#         parse_mode=ParseMode.MARKDOWN
+#         parse_mode=ParseMode.HTML
 #     )
 #     return conversation.MAIN_TREE
